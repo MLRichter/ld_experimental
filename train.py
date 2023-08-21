@@ -105,8 +105,8 @@ def identity(x):
 
 def ddp_setup(rank, world_size, n_node, node_id):  # <--- DDP
     rk = int(os.environ.get("SLURM_PROCID"))
-    print(f"Rank {rk} setting device to {0}")
-    torch.cuda.set_device(0)
+    print(f"Rank {rk} setting device to {rank}")
+    torch.cuda.set_device(rank)
     init_process_group(
         backend="nccl",
         rank=rk, world_size=world_size * n_node,
@@ -131,7 +131,7 @@ def train(gpu_id, world_size, n_nodes):
     node_id = int(os.environ["SLURM_PROCID"]) // world_size
     is_main_node = int(os.environ.get("SLURM_PROCID")) == 0
     ddp_setup(gpu_id, world_size, n_nodes, node_id)  # <--- DDP
-    device = torch.device(0)
+    device = torch.device(gpu_id)
 
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
