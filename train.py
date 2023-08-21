@@ -16,17 +16,14 @@ import time
 import webdataset as wds
 from webdataset.handlers import warn_and_continue
 
-from torch.distributed import init_process_group, destroy_process_group, new_group, get_world_size
+from torch.distributed import init_process_group, destroy_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
 from diffusers import AutoencoderKL, StableDiffusionKDiffusionPipeline
-import torch.multiprocessing as mp
 
 from torchtools.utils import Diffuzz, Diffuzz2
 from torchtools.utils.diffusion2 import DDPMSampler
-from torchtools.transforms import SmartCrop
 
 from ld_model import LDM
-from modules_experimental_1 import StageX
 from utils import WebdatasetFilter
 
 # PARAMETERS
@@ -45,7 +42,7 @@ checkpoint_path = "../models/experimental/exp1.pt"
 target = "e"
 
 wandv_project = "LDBaseline"
-wandv_entity = "MLRichter   "
+wandv_entity = "mlrichter   "
 wandb_run_name = "LDTrain"
 wandb_config = {
     "model_type": 'Latent Diffusion 0.87M',
