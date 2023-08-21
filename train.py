@@ -107,11 +107,11 @@ def ddp_setup(rank, world_size, n_node, node_id):  # <--- DDP
     rk = int(os.environ.get("SLURM_PROCID"))
     print(f"Rank {rk} setting device to {rank}")
     torch.cuda.set_device(rank)
-    #init_process_group(
-    #    backend="nccl",
-    #    rank=rk, world_size=world_size * n_node,
-    #    init_method="file:///fsx/mlrichter/ld_experimental/dist_file_experimental_exp1",
-    #)
+    init_process_group(
+        backend="nccl",
+        rank=rk, world_size=world_size * n_node,
+        init_method="file:///fsx/mlrichter/ld_experimental/dist_file_experimental_exp1",
+    )
     print(f"[GPU {rk}] READY")
 
 
