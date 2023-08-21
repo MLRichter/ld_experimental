@@ -131,7 +131,7 @@ def train(gpu_id, world_size, n_nodes):
     node_id = int(os.environ["SLURM_PROCID"]) // world_size
     is_main_node = int(os.environ.get("SLURM_PROCID")) == 0
     ddp_setup(gpu_id, world_size, n_nodes, node_id)  # <--- DDP
-    device = torch.device(gpu_id)
+    device = torch.device(0)
 
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
