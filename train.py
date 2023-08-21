@@ -33,7 +33,7 @@ from utils import WebdatasetFilter
 updates = 300000  # 500000
 warmup_updates = 10000
 batch_size = 1536  # 1024 # 2048 # 4096
-grad_accum_steps = 12
+grad_accum_steps = 12 * 64
 max_iters = updates * grad_accum_steps
 print_every = 10 * grad_accum_steps
 lr = 1e-4
