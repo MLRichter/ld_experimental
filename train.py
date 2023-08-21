@@ -30,7 +30,7 @@ from utils import WebdatasetFilter
 updates = 300000  # 500000
 warmup_updates = 10000
 batch_size = 1536  # 1024 # 2048 # 4096
-grad_accum_steps = 12 * 64
+grad_accum_steps = 12 * 8
 max_iters = updates * grad_accum_steps
 print_every = 10 * grad_accum_steps
 lr = 1e-4
@@ -149,7 +149,7 @@ def train(gpu_id, world_size, n_nodes):
     ).map_tuple(
         transforms, identity, handler=warn_and_continue
     )
-    real_batch_size = batch_size // (world_size * n_nodes * grad_accum_steps)
+    real_batch_size = min(batch_size // (world_size * n_nodes * grad_accum_steps), 1)
     dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
 
     if is_main_node:
