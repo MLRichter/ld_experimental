@@ -42,7 +42,7 @@ checkpoint_path = "../models/experimental/exp1.pt"
 target = "e"
 
 wandv_project = "LDBaseline"
-wandv_entity = "mlrichter   "
+wandv_entity = "mlrichter"
 wandb_run_name = "LDTrain"
 wandb_config = {
     "model_type": 'Latent Diffusion 0.87M',
