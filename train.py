@@ -239,7 +239,7 @@ def train(gpu_id, world_size, n_nodes):
     pbar = tqdm(range(start_iter, max_iters + 1)) if is_main_node else range(start_iter, max_iters + 1)  # <--- DDP
     generator.train()
     print("Entering main loop")
-    for images, captions, it in zip(pbar, dataloader_iterator):
+    for (images, captions), it in zip(dataloader_iterator, pbar):
         #images, captions = next(dataloader_iterator)
         images = images.to(device)
 
