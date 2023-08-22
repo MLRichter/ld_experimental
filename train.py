@@ -36,6 +36,7 @@ print_every = 10 * grad_accum_steps
 lr = 1e-4
 
 dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18699}.tar,part-1/{00000..18699}.tar,part-2/{00000..18699}.tar,part-3/{00000..18699}.tar,part-4/{00000..18699}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
+dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18000}.tar,part-1/{00000..13500}.tar,part-2/{00000..13500}.tar,part-3/{00000..13500}.tar,part-4/{00000..14100}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
 clip_image_model_name = 'laion/CLIP-ViT-H-14-laion2B-s32B-b79K'
 output_path = "../output/experimental/exp1/"
 checkpoint_path = "../models/experimental/exp1.pt"
@@ -142,7 +143,7 @@ def train(gpu_id, world_size, n_nodes):
     dataset = wds.WebDataset(
         dataset_path, resampled=True, handler=warn_and_continue
     ).select(
-        WebdatasetFilter(min_size=16, max_pwatermark=0.5, unsafe_threshold=0.99)
+        WebdatasetFilter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
     ).shuffle(690, handler=warn_and_continue).decode(
         "pilrgb", handler=warn_and_continue
     ).to_tuple(
@@ -234,13 +235,14 @@ def train(gpu_id, world_size, n_nodes):
 
         # -------------- START TRAINING --------------
     print("prepping dataloader")
-    dataloader_iterator = dataloader
-    #dataloader_iterator = iter(dataloader)
+    #dataloader_iterator = dataloader
+    dataloader_iterator = iter(dataloader)
     pbar = tqdm(range(start_iter, max_iters + 1)) if is_main_node else range(start_iter, max_iters + 1)  # <--- DDP
     generator.train()
     print("Entering main loop")
-    for (images, captions), it in zip(dataloader_iterator, pbar):
-        #images, captions = next(dataloader_iterator)
+    #for (images, captions), it in zip(dataloader_iterator, pbar):
+    for it in pbar:
+        images, captions = next(dataloader_iterator)
         images = images.to(device)
 
         with torch.no_grad():
@@ -311,12 +313,10 @@ def train(gpu_id, world_size, n_nodes):
                 tqdm.write(f"ITER {it}/{max_iters} - loss {ema_loss}")
 
                 generator.eval()
-                images, captions = dataset[it]
-                i = 0
+                images, captions = next(dataloader_iterator)
                 while images.size(0) < 8:  # 8
-                    i += 1
-                    _images, _captions = dataset[it+i]
-                    #_images, _captions = next(dataloader_iterator)
+                    #_images, _captions = dataset[it+i]
+                    _images, _captions = next(dataloader_iterator)
                     images = torch.cat([images, _images], dim=0)
                     captions += _captions
                 images, captions = images[:8].to(device), captions[:8]
