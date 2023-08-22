@@ -234,12 +234,13 @@ def train(gpu_id, world_size, n_nodes):
 
         # -------------- START TRAINING --------------
     print("prepping dataloader")
-    dataloader_iterator = iter(dataloader)
+    dataloader_iterator = dataloader
+    #dataloader_iterator = iter(dataloader)
     pbar = tqdm(range(start_iter, max_iters + 1)) if is_main_node else range(start_iter, max_iters + 1)  # <--- DDP
     generator.train()
     print("Entering main loop")
-    for it in pbar:
-        images, captions = next(dataloader_iterator)
+    for images, captions, it in zip(pbar, dataloader_iterator):
+        #images, captions = next(dataloader_iterator)
         images = images.to(device)
 
         with torch.no_grad():
@@ -310,9 +311,12 @@ def train(gpu_id, world_size, n_nodes):
                 tqdm.write(f"ITER {it}/{max_iters} - loss {ema_loss}")
 
                 generator.eval()
-                images, captions = next(dataloader_iterator)
+                images, captions = dataset[it]
+                i = 0
                 while images.size(0) < 8:  # 8
-                    _images, _captions = next(dataloader_iterator)
+                    i += 1
+                    _images, _captions = dataset[it+i]
+                    #_images, _captions = next(dataloader_iterator)
                     images = torch.cat([images, _images], dim=0)
                     captions += _captions
                 images, captions = images[:8].to(device), captions[:8]
