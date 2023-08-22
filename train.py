@@ -204,6 +204,7 @@ def train(gpu_id, world_size, n_nodes):
     # SETUP OPTIMIZER, SCHEDULER & CRITERION
     optimizer = optim.AdamW(generator.parameters(), lr=lr)  # , eps=1e-7, betas=(0.9, 0.95))
     scheduler = GradualWarmupScheduler(optimizer, multiplier=1, total_epoch=warmup_updates)
+    print("Initialized Loader and Optimizer")
     if checkpoint is not None:
         try:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -213,6 +214,7 @@ def train(gpu_id, world_size, n_nodes):
 
     start_iter = 1
     grad_norm = torch.tensor(0, device=device)
+    print("Looking for checkpoints to resume")
     if is_main_node:  # <--- DDP
         if checkpoint is not None:
             start_iter = checkpoint['scheduler_last_step'] * grad_accum_steps + 1
@@ -231,9 +233,11 @@ def train(gpu_id, world_size, n_nodes):
         torch.cuda.empty_cache()
 
         # -------------- START TRAINING --------------
+    print("prepping dataloader")
     dataloader_iterator = iter(dataloader)
     pbar = tqdm(range(start_iter, max_iters + 1)) if is_main_node else range(start_iter, max_iters + 1)  # <--- DDP
     generator.train()
+    print("Entering main loop")
     for it in pbar:
         images, captions = next(dataloader_iterator)
         images = images.to(device)
