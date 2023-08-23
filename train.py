@@ -17,7 +17,7 @@ import webdataset as wds
 from webdataset.handlers import warn_and_continue
 
 from torch.distributed import init_process_group, destroy_process_group
-from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.nn.parallel import DistributedDataParallel as DDP, DistributedDataParallel
 from diffusers import AutoencoderKL, StableDiffusionKDiffusionPipeline
 
 from torchtools.utils import Diffuzz, Diffuzz2
@@ -191,7 +191,7 @@ def train(gpu_id, world_size, n_nodes):
                     level_config=['CTA', 'CTA', 'CTA', 'CTA']).to(device)
     if checkpoint is not None:
         generator.load_state_dict(checkpoint['state_dict'])
-    generator = DDP(generator, device_ids=[gpu_id], output_device=device)  # <--- DDP
+    generator: DistributedDataParallel = DDP(generator, device_ids=[gpu_id], output_device=device)  # <--- DDP
 
     if is_main_node:  # <--- DDP
         print("Num trainable params:", sum(p.numel() for p in generator.parameters() if p.requires_grad))
@@ -238,8 +238,10 @@ def train(gpu_id, world_size, n_nodes):
     #dataloader_iterator = dataloader
     dataloader_iterator = iter(dataloader)
     pbar = tqdm(range(start_iter, max_iters + 1)) if is_main_node else range(start_iter, max_iters + 1)  # <--- DDP
+    print("Switching Train Mode")
     generator.train()
     print("Entering main loop")
+
     #for (images, captions), it in zip(dataloader_iterator, pbar):
     for it in pbar:
         images, captions = next(dataloader_iterator)
