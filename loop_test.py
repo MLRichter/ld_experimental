@@ -162,3 +162,10 @@ def train(gpu_id, world_size, n_nodes):
         images = images.to(device)
 
 
+if __name__ == '__main__':
+    print("Launching Script")
+    world_size = torch.cuda.device_count()
+    n_node = 1
+    local_rank = int(os.environ.get("SLURM_LOCALID"))
+    print("Detecting", torch.cuda.device_count(), "GPUs for each of the", n_node, "nodes")
+    train(local_rank, world_size, n_node)
