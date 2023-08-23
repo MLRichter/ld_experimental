@@ -105,6 +105,8 @@ def identity(x):
 
 
 def ddp_setup(rank, world_size, n_node, node_id):  # <--- DDP
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "33751"
     rk = int(os.environ.get("SLURM_PROCID"))
     print(f"Rank {rk} setting device to {rank}")
     torch.cuda.set_device(rank)
@@ -152,11 +154,17 @@ def train(gpu_id, world_size, n_nodes):
         transforms, identity, handler=warn_and_continue
     )
     real_batch_size = min(batch_size // (world_size * n_nodes * grad_accum_steps), 1)
+    print(f"micro_batch ({real_batch_size}) = batch ({batch_size}) / n_gpus ({world_size}) x nnodes ({n_nodes}) x grad_acc ({grad_accum_steps})")
+
+    if is_main_node:
+        print("REAL BATCH SIZE / DEVICE:", real_batch_size)
+
     dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
     dataloader_iterator = iter(dataloader)
+
+    start_iter = 0
     pbar = tqdm(range(start_iter, max_iters + 1)) if is_main_node else range(start_iter, max_iters + 1)  # <--- DDP
     print("Switching Train Mode")
-    start_iter = 1
     for it in pbar:
         images, captions = next(dataloader_iterator)
         images = images.to(device)
