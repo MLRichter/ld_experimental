@@ -147,7 +147,7 @@ def train(gpu_id, world_size, n_nodes):
     ).shuffle(690, handler=warn_and_continue).decode(
         "pilrgb", handler=warn_and_continue
     ).to_tuple(
-        "jpg", "combined_txt", handler=warn_and_continue
+        "jpg", "txt", handler=warn_and_continue
     ).map_tuple(
         transforms, identity, handler=warn_and_continue
     )
