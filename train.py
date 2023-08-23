@@ -30,7 +30,7 @@ from utils import WebdatasetFilter
 updates = 300000  # 500000
 warmup_updates = 10000
 batch_size = 1536  # 1024 # 2048 # 4096
-grad_accum_steps = 12 * 8
+grad_accum_steps = 12 * 2
 max_iters = updates * grad_accum_steps
 print_every = 10 * grad_accum_steps
 lr = 1e-4
@@ -397,7 +397,7 @@ def train(gpu_id, world_size, n_nodes):
 if __name__ == '__main__':
     print("Launching Script")
     world_size = torch.cuda.device_count()
-    n_node = 1
+    n_node = 4
     local_rank = int(os.environ.get("SLURM_LOCALID"))
     print("Detecting", torch.cuda.device_count(), "GPUs for each of the", n_node, "nodes")
     train(local_rank, world_size, n_node)
