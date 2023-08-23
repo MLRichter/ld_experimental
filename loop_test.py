@@ -35,8 +35,8 @@ max_iters = updates * grad_accum_steps
 print_every = 10 * grad_accum_steps
 lr = 1e-4
 
-dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18699}.tar,part-1/{00000..18699}.tar,part-2/{00000..18699}.tar,part-3/{00000..18699}.tar,part-4/{00000..18699}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
-dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18000}.tar,part-1/{00000..13500}.tar,part-2/{00000..13500}.tar,part-3/{00000..13500}.tar,part-4/{00000..14100}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
+#dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18699}.tar,part-1/{00000..18699}.tar,part-2/{00000..18699}.tar,part-3/{00000..18699}.tar,part-4/{00000..18699}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
+dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18000}.tar,part-1/{00000..13500}.tar,part-2/{00000..13500}.tar,part-3/{00000..13500}.tar,part-4/{00000..14100}.tar} -"
 clip_image_model_name = 'laion/CLIP-ViT-H-14-laion2B-s32B-b79K'
 output_path = "../output/experimental/exp1/"
 checkpoint_path = "../models/experimental/exp1.pt"
@@ -133,7 +133,7 @@ def tokenizer_text_encoder_factory(device: str):
 
 def train(gpu_id, world_size, n_nodes):
     node_id = int(os.environ["SLURM_PROCID"]) // world_size
-    is_main_node = int(os.environ.get("SLURM_PROCID")) == 0
+    main_node = int(os.environ.get("SLURM_PROCID")) == 0 #gpu_id == 0 and node_id == 0
     ddp_setup(gpu_id, world_size, n_nodes, node_id)  # <--- DDP
     device = torch.device(gpu_id)
 
@@ -141,7 +141,6 @@ def train(gpu_id, world_size, n_nodes):
     torch.backends.cudnn.allow_tf32 = True
 
     # --- PREPARE DATASET ---
-    # PREPARE DATASET
     dataset = wds.WebDataset(
         dataset_path, resampled=True, handler=warn_and_continue
     ).select(
@@ -149,22 +148,19 @@ def train(gpu_id, world_size, n_nodes):
     ).shuffle(690, handler=warn_and_continue).decode(
         "pilrgb", handler=warn_and_continue
     ).to_tuple(
-        "jpg", "combined_txt", handler=warn_and_continue
+        "jpg", "txt", handler=warn_and_continue
     ).map_tuple(
         transforms, identity, handler=warn_and_continue
     )
-    real_batch_size = min(batch_size // (world_size * n_nodes * grad_accum_steps), 1)
+
+    real_batch_size = batch_size // (world_size * n_nodes * grad_accum_steps)
     print(f"micro_batch ({real_batch_size}) = batch ({batch_size}) / n_gpus ({world_size}) x nnodes ({n_nodes}) x grad_acc ({grad_accum_steps})")
 
-    if is_main_node:
-        print("REAL BATCH SIZE / DEVICE:", real_batch_size)
-
     dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
-    dataloader_iterator = iter(dataloader)
-
     start_iter = 0
-    pbar = tqdm(range(start_iter, max_iters + 1)) if is_main_node else range(start_iter, max_iters + 1)  # <--- DDP
-    print("Switching Train Mode")
+
+    dataloader_iterator = iter(dataloader)
+    pbar = tqdm(range(start_iter, max_iters + 1)) if (main_node) else range(start_iter, max_iters + 1)  # <--- DDP
     for it in pbar:
         images, captions = next(dataloader_iterator)
         images = images.to(device)
