@@ -59,7 +59,7 @@ def prompts2embed(prompt, tokenizer, text_encoder):
 
 
 if __name__ == '__main__':
-    prompt = "A post for the movie mad mats fury road"
+    prompt = "An image, of a brightly colored flower"
     device = "cuda:0"
 
     model = StableDiffusionKDiffusionPipeline.from_pretrained(
