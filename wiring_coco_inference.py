@@ -74,8 +74,10 @@ class DiffusionModelInferencer:
                 }, (1, 4, 64, 64), unconditional_inputs={
                     'clip': embeds_uncond,
                 }, cfg=7, sample_mode="e")
-            sampled_images = self.vae.decode(sampled).sample.clamp(0, 1)
-            #denormalize_image(image=sampled_images, mean=0.5, std=0.5)
+
+            magic_norm = 0.18215
+            sampled_images = self.vae.decode(sampled / magic_norm).sample.clamp(0, 1)
+            sampled_images = denormalize_image(image=sampled_images, mean=0.5, std=0.5)
         return sampled_images
 
 
