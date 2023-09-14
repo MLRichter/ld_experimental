@@ -1,6 +1,8 @@
+import argparse
 import warnings
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Union
 
+import PIL.Image
 import torch
 import torchvision
 from torch import nn, optim
@@ -24,6 +26,7 @@ from diffusers import AutoencoderKL, StableDiffusionKDiffusionPipeline
 from torchtools.utils import Diffuzz, Diffuzz2
 from torchtools.utils.diffusion2 import DDPMSampler
 
+from inferencer import sd14, wuerstchen, ldm14
 from ld_model import LDM
 from pathlib import Path
 
@@ -54,34 +57,12 @@ def denormalize_image(image, mean, std):
     return denormalized_image
 
 
-@define
-class DiffusionModelInferencer:
-    generator: LDM
-    clip_tokenizer: Any
-    clip_model: torch.nn.Module
-    vae: torch.nn.Module
-    diffuzz: Diffuzz2
-
-    def __call__(self, captions: List[str], device_lang: str = "cpu"):
-        with torch.no_grad():
-            # clip stuff
-            embeds = prompts2embed(captions, self.clip_tokenizer, self.clip_model, device_lang)
-            embeds_uncond = prompts2embed([""] * len(captions), self.clip_tokenizer, self.clip_model, device_lang)
-            # ---
-            with torch.cuda.amp.autocast(dtype=torch.bfloat16):
-                *_, (sampled, _, _) = self.diffuzz.sample(self.generator, {
-                    'clip': embeds,
-                }, (1, 4, 64, 64), unconditional_inputs={
-                    'clip': embeds_uncond,
-                }, cfg=7, sample_mode="e")
-
-            magic_norm = 0.18215
-            sampled_images = self.vae.decode(sampled / magic_norm).sample.clamp(0, 1)
-            sampled_images = denormalize_image(image=sampled_images, mean=0.5, std=0.5)
-        return sampled_images
+def get_processed_images(dst_path: Path) -> List[str]:
+    filenames = os.listdir(dst_path)
+    return filenames
 
 
-def coco_caption_loader(data_path: Path) -> Tuple[int, str]:
+def coco_caption_loader_json(data_path: Path) -> Tuple[int, str]:
     import json
     with data_path.open("r") as fp:
         content = json.load(fp)["annotations"]
@@ -89,52 +70,102 @@ def coco_caption_loader(data_path: Path) -> Tuple[int, str]:
         yield datapoint["id"], datapoint["caption"]
 
 
-def save_image(image: torch.Tensor, output_path: Path, i: int):
-    torchvision.utils.save_image(image.cpu(), f'{output_path}/img_{i}.jpg')
+def coco_caption_loader_pyarrow(data_path: Path) -> Tuple[int, str]:
+    import pandas as pd
+
+    # Read the Parquet file into a pandas DataFrame
+    df = pd.read_parquet(data_path, engine="pyarrow")
+    content = df['caption'].values
+    file_names = df['file_name'].values
+    for i, (file_name, caption) in enumerate(zip(tqdm(file_names), content)):
+        yield file_name, caption
 
 
-def load_model(weight_path: Path, device: str = "cpu") -> torch.nn.Module:
-    generator = LDM(c_hidden=[320, 640, 1280, 1280], nhead=[5, 10, 20, 20], blocks=[[2, 4, 14, 4], [5, 15, 5, 3]],
-                    level_config=['CTA', 'CTA', 'CTA', 'CTA']).cuda()
-    generator.eval()
-    clip_tokenizer, clip_model = tokenizer_text_encoder_factory(device=device)
-    vae = AutoencoderKL.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="vae").to(device)
-    vae.eval().requires_grad_(False)
+coco_caption_loader = coco_caption_loader_pyarrow
 
-    checkpoint = torch.load(weight_path, map_location=device)
-    generator.load_state_dict(checkpoint['state_dict'])
-    diffuzz = Diffuzz2(device=device, scaler=1, clamp_range=(0.0001, 0.9999))
-    return DiffusionModelInferencer(generator=generator,
-                                    clip_tokenizer=clip_tokenizer,
-                                    clip_model=clip_model,
-                                    vae=vae,
-                                    diffuzz=diffuzz
-                                    )
+
+def _poly_save(image: Union[torch.Tensor, PIL.Image.Image], savename: Path) -> None:
+    if isinstance(image, torch.Tensor):
+        torchvision.utils.save_image(image.cpu(), savename)
+    else:
+        image.save(savename)
+
+
+def save_image(image: torch.Tensor, output_path: Path, i: Union[int, List[str]]):
+    if isinstance(i, list):
+        for idx, filename in enumerate(i):
+            _poly_save(image[idx], f'{output_path}/{filename}')
+    else:
+        _poly_save(image, f'{output_path}/{i}')
 
 
 def main(
-        weight_path: str,
+        factory: callable,
         dataset_path: str,
         output_path: str,
-        device: str):
-    weight_path = Path(weight_path)
+        batch_size: int,
+        device: str,
+        start_index: int,
+        num_datapoints: int):
+
     dataset_path = Path(dataset_path)
     output_path = Path(output_path)
-    model = load_model(weight_path, device=device)
+    output_path.mkdir(exist_ok=True, parents=True)
+    model = factory(device=device)
 
+    existing_files = get_processed_images(output_path)
+
+    prompts = []
+    ids = []
+    processed_datapoints = 0
     # this is a wiring fix in order to not deal with the dataset (yet)
-    for id, prompt in coco_caption_loader(data_path=dataset_path):
-        images = model([prompt], device)
+    for i, (id, prompt) in enumerate(coco_caption_loader(data_path=dataset_path)):
 
-        save_image(images, output_path=output_path, i=id)
+        if i < start_index:  # Skip until we reach the starting index
+            continue
+
+        if processed_datapoints >= num_datapoints:  # Stop after processing num_datapoints
+            break
+
+        filename = f"{id}"
+        if filename in existing_files:
+            print("Found", filename, "skipping...")
+            continue
+        prompts.append(prompt)
+        ids.append(id)
+
+        if len(prompts) == batch_size:
+            images = model(prompts, device, batch_size=batch_size)
+            save_image(images, output_path=output_path, i=ids)
+            processed_datapoints += len(images)
+            prompts = []
+            ids = []
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("start_index", type=int, help="The starting index of datapoints to process")
+    parser.add_argument("num_datapoints", type=int, help="The number of datapoints to process")
+    parser.add_argument("factory", type=str, help="The number of datapoints to process")
+    args = parser.parse_args()
     weight_path: str = "./models/baseline/exp1.pt"
-    dataset_path: str = "./data/captions_train2014.json"
-    output_path: str = "./output/generated"
-    device = "cuda"
-    main(weight_path=weight_path, dataset_path=dataset_path, output_path=output_path, device=device)
+    if args.factory == "sd14":
+        factory = sd14
+    elif args.factory == "wuerstchen":
+        factory = wuerstchen
+    elif args.factory == "ldm14":
+        factory = ldm14
+    else:
+        raise ArithmeticError(f"Unknown factory {args.factory}")
+
+    factory_name = factory.__name__
+    print(factory_name)
+    dataset_path: str = "../coco2017/coco_30k.parquet"
+    output_path: str = f"./output/{factory_name}_generated"
+    device = "cuda:0"
+    batch_size: int = 16
+    main(factory=factory, dataset_path=dataset_path, output_path=output_path, device=device, batch_size=batch_size,
+         start_index=args.start_index, num_datapoints=args.num_datapoints)
 
 
 
