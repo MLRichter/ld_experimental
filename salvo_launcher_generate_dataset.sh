@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to the script to be executed
-script_to_execute="./your_script.sh"
+script_to_execute="./generate_dataset.sh"
 
 # Initialize the first argument at 0
 arg1=0
