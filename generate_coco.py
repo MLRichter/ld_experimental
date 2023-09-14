@@ -10,6 +10,8 @@ import numpy as np
 import wandb
 import os
 import shutil
+from transformers import AutoTokenizer, CLIPTextModel, CLIPVisionModel
+import time
 
 import webdataset as wds
 from webdataset.handlers import warn_and_continue
@@ -53,13 +55,10 @@ wandb_config = {
     "description": "Latent Diffusion Model Similar to SD-1.4"
 }
 
-magic_norm = 0.18215
 transforms = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Resize(512, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, antialias=True),
-    torchvision.transforms.CenterCrop(512),
-    torchvision.transforms.Normalize([0.5], [0.5]),
-
+    torchvision.transforms.CenterCrop(512)
 ])
 
 
@@ -255,7 +254,7 @@ def train(gpu_id, world_size, n_nodes):
             if not rand_idx.any():
                 embeds[rand_idx] = 0
             t = (1 - torch.rand(images.size(0), device=device)).add(0.001).clamp(0.001, 1.0)
-            latents = vae.encode(images).latent_dist.mode() * magic_norm
+            latents = vae.encode(images).latent_dist.mode()
             noised_latents, noise = diffuzz.diffuse(latents, t)
             target_v = diffuzz.get_v(latents, t, noise)
 
@@ -330,7 +329,7 @@ def train(gpu_id, world_size, n_nodes):
                     # ---
 
                     t = (1 - torch.rand(images.size(0), device=device)).add(0.001).clamp(0.001, 1.0)
-                    latents = vae.encode(images).latent_dist.mode() * magic_norm
+                    latents = vae.encode(images).latent_dist.mode()
                     noised_latents, noise = diffuzz.diffuse(latents, t)
 
                     if target == 'e':
@@ -350,9 +349,9 @@ def train(gpu_id, world_size, n_nodes):
                             'clip': embeds_uncond,
                         }, cfg=7, sample_mode=target)
 
-                    noised_images = vae.decode(noised_latents / magic_norm).sample.clamp(0, 1)
-                    pred_images = vae.decode(pred / magic_norm).sample.clamp(0, 1)
-                    sampled_images = vae.decode(sampled / magic_norm).sample.clamp(0, 1)
+                    noised_images = vae.decode(noised_latents).sample.clamp(0, 1)
+                    pred_images = vae.decode(pred).sample.clamp(0, 1)
+                    sampled_images = vae.decode(sampled).sample.clamp(0, 1)
                 generator.train()
 
                 torchvision.utils.save_image(torch.cat([
