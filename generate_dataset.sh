@@ -38,5 +38,4 @@ echo "r$SLURM_NODEID master: $MASTER_ADDR"
 echo "r$SLURM_NODEID Launching python script"
 
 #cd würstchen
-rm /fsx/mlrichter/dist_file_experimental_exp1
 srun python3 wiring_coco_inference.py $1 $2 "sd14"
