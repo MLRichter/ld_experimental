@@ -10,8 +10,6 @@ import numpy as np
 import wandb
 import os
 import shutil
-from transformers import AutoTokenizer, CLIPTextModel, CLIPVisionModel
-import time
 
 import webdataset as wds
 from webdataset.handlers import warn_and_continue
