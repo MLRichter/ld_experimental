@@ -16,7 +16,8 @@ from typing import Protocol
 import torch
 from diffusers import AutoPipelineForText2Image
 from diffusers.pipelines.wuerstchen import DEFAULT_STAGE_C_TIMESTEPS
-
+from torchmetrics.multimodal import clip_score
+from torchmetrics.multimodal.clip_score import CLIPScore
 
 def denormalize_image(image, mean, std):
     """
@@ -143,12 +144,49 @@ class BaseWuerstchenInferencer:
         self.prior_pipeline = prior_pipeline
         self.decoder_pipeline = decoder_pipeline
         self.negative_prompt = negative_prompt
+        self.num_clip_samples = 10
+        if self.num_clip_samples > 1:
+            self.clip_score = CLIPScore()
+
+    def _get_one_sample(self, caption: str):
+        prior_output = self.prior_pipeline(
+            prompt=caption,
+            height=1024,
+            width=1024,
+            timesteps=self.default_stage_c_timesteps,
+            negative_prompt=self.negative_prompt,
+            guidance_scale=8.0,
+            num_images_per_prompt=1,
+        )
+        decoder_output = self.decoder_pipeline(
+            image_embeddings=prior_output.image_embeddings,
+            prompt=caption,
+            negative_prompt=self.negative_prompt,
+            num_images_per_prompt=1,
+            guidance_scale=0.0,
+            output_type="pt",
+        ).images
+        return decoder_output[0]
+
+    def _get_best_clip_sample(self, caption: str):
+        images = []
+        scores = []
+        for i in range(self.num_clip_samples):
+            image = self._get_one_sample(caption)
+            score = self.clip_score(image.cpu(), caption).detach().cpu().item()
+            images.append(image)
+            scores.append(score)
+            self.clip_score.reset()
+            print("Image", i, ":", score)
+        index_of_max = scores.index(max(scores))
+        selected_value = images[index_of_max]
+        return [selected_value]
 
     def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2):
 
         images = []
         for caption in captions:
-
+            """
             prior_output = self.prior_pipeline(
                 prompt=caption,
                 height=1024,
@@ -166,6 +204,8 @@ class BaseWuerstchenInferencer:
                 guidance_scale=0.0,
                 output_type="pil",
             ).images
+            """
+            decoder_output = self._get_best_clip_sample(caption)
             images += decoder_output
         return images
 

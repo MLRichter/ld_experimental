@@ -47,6 +47,6 @@ def calc_probs(prompt, images):
     return probs.cpu().tolist()
 
 
-pil_images = [Image.open(r"C:\Users\matsl\Documents\ld_experimental\output\generated\img_COCO_val2014_000000001398.jpg"), Image.open("../coco2017/coco_subset/COCO_val2014_000000001398.jpg")]
-prompt = "A grey cat rubbing against a persons legs."
+pil_images = [Image.open(r"C:\Users\matsl\Documents\ld_experimental\output\sd14_generated\COCO_val2014_000000409181.jpg"), Image.open(r"C:\Users\matsl\Documents\ld_experimental\output\wuerstchen_base_generated\COCO_val2014_000000409181.jpg")]
+prompt = "A group of zebra standing near a herd of antelope."
 print(calc_probs(prompt, pil_images))

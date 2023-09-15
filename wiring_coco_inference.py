@@ -9,7 +9,7 @@ import os
 
 from inferencer import sd14, wuerstchen, ldm14, wuerstchen_base
 from pathlib import Path
-torch.manual_seed(30071993)
+#torch.manual_seed(30071993)
 
 def denormalize_image(image, mean, std):
     """
@@ -62,7 +62,7 @@ coco_caption_loader = coco_caption_loader_pyarrow
 
 def _poly_save(image: Union[torch.Tensor, PIL.Image.Image], savename: Path) -> None:
     if isinstance(image, torch.Tensor):
-        torchvision.utils.save_image(image.cpu(), savename)
+        torchvision.utils.save_image(image.float().cpu(), savename)
     else:
         image.save(savename)
 
