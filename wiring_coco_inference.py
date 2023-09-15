@@ -7,7 +7,7 @@ import torchvision
 from tqdm import tqdm
 import os
 
-from inferencer import sd14, wuerstchen, ldm14
+from inferencer import sd14, wuerstchen, ldm14, wuerstchen_base
 from pathlib import Path
 torch.manual_seed(30071993)
 
@@ -129,6 +129,8 @@ if __name__ == '__main__':
         factory = sd14
     elif args.factory == "wuerstchen":
         factory = wuerstchen
+    elif args.factory == "wuerstchen_base":
+        factory = wuerstchen_base
     elif args.factory == "ldm14":
         factory = ldm14
     else:
@@ -139,7 +141,7 @@ if __name__ == '__main__':
     dataset_path: str = "../coco2017/coco_30k.parquet"
     output_path: str = f"./output/{factory_name}_generated"
     device = "cuda:0"
-    batch_size: int = 16
+    batch_size: int = 2
     main(factory=factory, dataset_path=dataset_path, output_path=output_path, device=device, batch_size=batch_size,
          start_index=args.start_index, num_datapoints=args.num_datapoints)
 

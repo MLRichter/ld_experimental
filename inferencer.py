@@ -120,7 +120,7 @@ def ldm14(weight_path: Path = "../models/baseline/exp1.pt", device: str = "cpu")
                                     )
 
 
-class BaseWuerstchenInferencer(Protocol):
+class BaseWuerstchenInferencer:
 
     def __init__(self):
         from diffusers import WuerstchenDecoderPipeline, WuerstchenPriorPipeline
@@ -145,24 +145,29 @@ class BaseWuerstchenInferencer(Protocol):
         self.negative_prompt = negative_prompt
 
     def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2):
-        prior_output = self.prior_pipeline(
-            prompt=caption,
-            height=1024,
-            width=1024,
-            timesteps=self.default_stage_c_timesteps,
-            negative_prompt=self.negative_prompt,
-            guidance_scale=8.0,
-            num_images_per_prompt=self.num_images_per_prompt,
-        )
-        decoder_output = self.decoder_pipeline(
-            image_embeddings=prior_output.image_embeddings,
-            prompt=caption,
-            negative_prompt=self.negative_prompt,
-            num_images_per_prompt=1,
-            guidance_scale=0.0,
-            output_type="pil",
-        ).images
-        return decoder_output
+
+        images = []
+        for caption in captions:
+
+            prior_output = self.prior_pipeline(
+                prompt=caption,
+                height=1024,
+                width=1024,
+                timesteps=self.default_stage_c_timesteps,
+                negative_prompt=self.negative_prompt,
+                guidance_scale=8.0,
+                num_images_per_prompt=1,
+            )
+            decoder_output = self.decoder_pipeline(
+                image_embeddings=prior_output.image_embeddings,
+                prompt=caption,
+                negative_prompt=self.negative_prompt,
+                num_images_per_prompt=1,
+                guidance_scale=0.0,
+                output_type="pil",
+            ).images
+            images += decoder_output
+        return images
 
 def sd14(weight_path: Path = "CompVis/stable-diffusion-v1-4", device: str = "cpu") -> Inferencer:
     model = StableDiffusionKDiffusionPipeline.from_pretrained(
