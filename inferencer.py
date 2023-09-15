@@ -120,6 +120,50 @@ def ldm14(weight_path: Path = "../models/baseline/exp1.pt", device: str = "cpu")
                                     )
 
 
+class BaseWuerstchenInferencer(Protocol):
+
+    def __init__(self):
+        from diffusers import WuerstchenDecoderPipeline, WuerstchenPriorPipeline
+        from diffusers.pipelines.wuerstchen import WuerstchenPrior
+        self.default_stage_c_timesteps = DEFAULT_STAGE_C_TIMESTEPS
+        device = "cuda"
+        dtype = torch.float16
+        num_images_per_prompt = 2
+
+        prior = WuerstchenPrior.from_pretrained("warp-ai/wuerstchen-prior-model-base", torch_dtype=dtype).to(device)
+        prior_pipeline = WuerstchenPriorPipeline.from_pretrained(
+            "warp-ai/wuerstchen-prior", prior=prior, torch_dtype=dtype
+        ).to(device)
+        decoder_pipeline = WuerstchenDecoderPipeline.from_pretrained(
+            "warp-ai/wuerstchen", torch_dtype=dtype
+        ).to(device)
+
+        negative_prompt = "bad anatomy, blurry, fuzzy, extra arms, extra fingers, poorly drawn hands, disfigured, tiling, deformed, mutated, drawing"
+        self.prior = prior
+        self.prior_pipeline = prior_pipeline
+        self.decoder_pipeline = decoder_pipeline
+        self.negative_prompt = negative_prompt
+
+    def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2):
+        prior_output = self.prior_pipeline(
+            prompt=caption,
+            height=1024,
+            width=1024,
+            timesteps=self.default_stage_c_timesteps,
+            negative_prompt=self.negative_prompt,
+            guidance_scale=8.0,
+            num_images_per_prompt=self.num_images_per_prompt,
+        )
+        decoder_output = self.decoder_pipeline(
+            image_embeddings=prior_output.image_embeddings,
+            prompt=caption,
+            negative_prompt=self.negative_prompt,
+            num_images_per_prompt=1,
+            guidance_scale=0.0,
+            output_type="pil",
+        ).images
+        return decoder_output
+
 def sd14(weight_path: Path = "CompVis/stable-diffusion-v1-4", device: str = "cpu") -> Inferencer:
     model = StableDiffusionKDiffusionPipeline.from_pretrained(
         weight_path, revision="fp16", torch_dtype=torch.float16
@@ -137,6 +181,20 @@ def wuerstchen(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0",
 
     pipeline.set_progress_bar_config(leave=True)
     model = WuerstchenInferencer(pipeline)
+    return model
+
+def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0", compile: bool = False) -> Inferencer:
+    pipeline = AutoPipelineForText2Image.from_pretrained(weight_path, torch_dtype=torch.float16).to(device)
+    if compile:
+        pipeline.prior_prior = torch.compile(pipeline.prior_prior, mode="reduce-overhead", fullgraph=True)
+        pipeline.decoder = torch.compile(pipeline.decoder, mode="reduce-overhead", fullgraph=True)
+
+    pipeline.set_progress_bar_config(leave=True)
+    model = WuerstchenInferencer(pipeline)
+    return model
+
+def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0", compile: bool = False) -> Inferencer:
+    model = BaseWuerstchenInferencer()
     return model
 
 
