@@ -1,9 +1,10 @@
 #!/bin/bash
-#SBATCH --account=def-pal
+#SBATCH --account=laion
+#SBATCH --partition=g40x
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
-#SBATCH -t 00:30:00
+#SBATCH -t 03:00:00
 #SBATCH --job-name=dataset_generation
 
 module load openmpi
@@ -38,4 +39,4 @@ echo "r$SLURM_NODEID master: $MASTER_ADDR"
 echo "r$SLURM_NODEID Launching python script"
 
 #cd würstchen
-srun python3 wiring_coco_inference.py $1 $2 "sd14"
+srun python3 wiring_coco_inference.py $1 $2 "wuerstchen"

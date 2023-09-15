@@ -9,6 +9,7 @@ import os
 
 from inferencer import sd14, wuerstchen, ldm14
 from pathlib import Path
+torch.manual_seed(30071993)
 
 def denormalize_image(image, mean, std):
     """

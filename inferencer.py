@@ -91,8 +91,8 @@ class WuerstchenInferencer(Inferencer):
         for caption in captions:
             sampled = self.generator(
             caption,
-            height=512,
-            width=512,
+            height=1024,
+            width=1024,
             prior_timesteps=DEFAULT_STAGE_C_TIMESTEPS,
             prior_guidance_scale=4.0,
             num_images_per_prompt=1,
@@ -101,7 +101,7 @@ class WuerstchenInferencer(Inferencer):
         return images
 
 
-def ldm14(weight_path: Path = "./models/baseline/exp1.pt", device: str = "cpu") -> Inferencer:
+def ldm14(weight_path: Path = "../models/baseline/exp1.pt", device: str = "cpu") -> Inferencer:
     generator = LDM(c_hidden=[320, 640, 1280, 1280], nhead=[5, 10, 20, 20], blocks=[[2, 4, 14, 4], [5, 15, 5, 3]],
                     level_config=['CTA', 'CTA', 'CTA', 'CTA']).cuda()
     generator.eval()
