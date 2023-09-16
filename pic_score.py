@@ -122,9 +122,9 @@ def main(dataset1: str, dataset2: str, parquet_file: str = "../coco2017/coco_30k
     total = 0
     picks = [0, 0]
     for i, (file_name, caption) in enumerate(pbar):
-        image1 = os.path.join(dataset1, file_name)
-        image2 = os.path.join(dataset2, file_name)
-        if os.path.exists(image1) and os.path.exists(image2):
+        image1 = os.path.join(dataset1, file_name) if os.path.exists(os.path.join(dataset1, file_name)) else Path(os.path.join(dataset1, file_name)).with_suffix(".png")
+        image2 = os.path.join(dataset2, file_name) if os.path.exists(os.path.join(dataset2, file_name)) else Path(os.path.join(dataset2, file_name)).with_suffix(".png")
+        if os.path.exists(image1)  and (os.path.exists(image2)):
             #pil_images = [Image.open(image1),
             #              Image.open(image2)]
             #score = np.asarray(calc_probs(caption, pil_images))
@@ -141,20 +141,26 @@ def main(dataset1: str, dataset2: str, parquet_file: str = "../coco2017/coco_30k
         else:
             print("nonexistant file:", file_name, os.path.exists(image1), os.path.exists(image2))
     x = scores / total
-    return {f'{dataset1_name} conf': x[0], f'{dataset2_name} conf': x[1],
-                   f'{dataset1_name} pick ratio': picks[0] / total, f'{dataset2_name} pick ratio': picks[1] / total}
+    return {
+        f'{dataset1_name} conf': x[0],
+        f'{dataset2_name} conf': x[1],
+        f'{dataset1_name} pick ratio': picks[0] / total,
+        f'{dataset2_name} pick ratio': picks[1] / total
+    }
 
 
 if __name__ == '__main__':
-
-    dataset1 = "output/wuerstchen_generated"
+    #parquet_file = "../coco2017/long_context_val.parquet"
+    parquet_file = "../coco2017/coco_30k.parquet"
+    dataset1 = "output/wuerstchen_long_context_generated"
     datasets2 = [
         "output/sd14_generated",
+        "output/sd21_generated",
         "output/ldm14_generated",
     ]
     final_result = {}
     for dataset2 in datasets2:
-        result = main(dataset1, dataset2)
+        result = main(dataset1, dataset2, parquet_file=parquet_file)
         final_result[dataset2] = result
         if (Path("results") / Path(Path(dataset1).with_suffix(".json").name)).exists():
             with (Path("results") / Path(Path(dataset1).with_suffix(".json").name)).open("r") as fp:

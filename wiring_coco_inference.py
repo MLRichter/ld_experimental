@@ -143,8 +143,8 @@ if __name__ == '__main__':
 
     factory_name = factory.__name__
     print(factory_name)
-    #dataset_path: str = "../coco2017/coco_30k.parquet"
-    dataset_path: str = "../coco2017/long_context_val.parquet"
+    dataset_path: str = "../coco2017/coco_30k.parquet"
+    #dataset_path: str = "../coco2017/long_context_val.parquet"
     if "coco_30k.parquet" in dataset_path:
         output_path: str = f"./output/{factory_name}_generated"
     else:
