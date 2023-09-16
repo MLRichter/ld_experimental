@@ -4,7 +4,8 @@ import PIL
 import torch
 import os
 
-from diffusers import AutoencoderKL, StableDiffusionKDiffusionPipeline, StableDiffusionPipeline
+from diffusers import AutoencoderKL, StableDiffusionKDiffusionPipeline, StableDiffusionPipeline, \
+    DPMSolverMultistepScheduler
 from torchtools.utils import Diffuzz, Diffuzz2
 
 from ld_model import LDM
@@ -209,6 +210,13 @@ class BaseWuerstchenInferencer:
             images += decoder_output
         return images
 
+def sd21(weight_path: Path = "stabilityai/stable-diffusion-2-1", device: str = "cpu") -> Inferencer:
+    pipe = StableDiffusionPipeline.from_pretrained(weight_path, torch_dtype=torch.float16)
+    pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
+    pipe = pipe.to(device)
+    return StableDiffusionInferencer(generator=pipe)
+
+
 def sd14(weight_path: Path = "CompVis/stable-diffusion-v1-4", device: str = "cpu") -> Inferencer:
     model = StableDiffusionKDiffusionPipeline.from_pretrained(
         weight_path, revision="fp16", torch_dtype=torch.float16
@@ -227,6 +235,7 @@ def wuerstchen(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0",
     pipeline.set_progress_bar_config(leave=True)
     model = WuerstchenInferencer(pipeline)
     return model
+
 
 def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0", compile: bool = False) -> Inferencer:
     pipeline = AutoPipelineForText2Image.from_pretrained(weight_path, torch_dtype=torch.float16).to(device)

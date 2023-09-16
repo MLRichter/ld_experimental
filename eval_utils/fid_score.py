@@ -46,11 +46,14 @@ from scipy import linalg
 from torch.autograd import Variable
 from torch.nn.functional import adaptive_avg_pool2d
 import torchvision.transforms as transforms
+from tqdm import tqdm
+
 from inception import InceptionV3
 import torch.utils.data
 from PIL import Image
 from torch.utils import data
 
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 class MyDataset(Dataset):
     def __init__(self, image_paths, transform=None):
@@ -121,7 +124,7 @@ def get_activations(images, model, batch_size=64, dims=2048, cuda=False, verbose
 
     pred_arr = np.empty((n_used_imgs, dims))
     #for i in range(n_batches):
-    for i, batch in enumerate(images):
+    for i, (batch, label) in enumerate(tqdm(images)):
         #batch = batch[0]
         #if verbose:
             #print('\rPropagating batch %d/%d' % (i + 1, n_batches), end='', flush=True)
@@ -232,6 +235,8 @@ def calculate_activation_statistics(images, model, batch_size=64,
     mu = np.mean(act, axis=0)
     sigma = np.cov(act, rowvar=False)
     return mu, sigma
+def to_rgb(x):
+    return x.repeat(3, 1, 1) if x.size(0) == 1 else x
 
 
 def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
@@ -241,9 +246,11 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
         f.close()
 
     else:
-        dataset = MyDataset(path, transforms.Compose([
-            transforms.Resize((512, 512)),
+        dataset = MyDataset(path, transform=transforms.Compose([
             transforms.ToTensor(),
+            transforms.Resize((512, 512)),
+            transforms.Lambda(to_rgb)
+
         ]))
         print(dataset.__len__())
         dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, drop_last=True, num_workers=8)
@@ -272,7 +279,7 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims):
             raise RuntimeError('Invalid path: %s' % p)
 
     block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
-    model = InceptionV3([block_idx])
+    model = InceptionV3([block_idx], resize_input=False)
     if cuda:
         model.cuda()
 
