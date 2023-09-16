@@ -4,12 +4,16 @@ from PIL import Image
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, Dataset
-from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop
+from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Lambda
 from tqdm import tqdm
 
+def to_rgb(x):
+    return x.repeat(3, 1, 1) if x.size(0) == 1 else x
+
 transform = Compose([
-    Resize(size=(299, 299)),
+    Resize(size=(512, 512)),
     ToTensor(),
+    Lambda(to_rgb)
 ])
 
 
@@ -46,11 +50,11 @@ def main(dataset_1: str, dataset_2: str):
     for (img1, _), (img2, _) in zip(tqdm(ds1), ds2):
         fid_score.update(img1, real=True)
         fid_score.update(img2, real=False)
-    print(fid_score.compute())
+    print("FID Score:", fid_score.compute())
 
 
 
 
 
 if __name__ == '__main__':
-    main('../coco2017/coco_subset/', 'output/wuerstchen_generated/')
+    main('../coco2017/coco_subset/', 'output/sd14_generated/')
