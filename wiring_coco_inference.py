@@ -7,7 +7,7 @@ import torchvision
 from tqdm import tqdm
 import os
 
-from inferencer import sd14, wuerstchen, ldm14, wuerstchen_base, sd21
+from inferencer import sd14, wuerstchen, ldm14, wuerstchen_base, sd21, sdxl
 from pathlib import Path
 #torch.manual_seed(30071993)
 
@@ -127,8 +127,10 @@ if __name__ == '__main__':
     weight_path: str = "./models/baseline/exp1.pt"
     if args.factory == "sd14":
         factory = sd14
-    if args.factory == "sd21":
+    elif args.factory == "sd21":
         factory = sd21
+    elif args.factory == "sdxl":
+        factory = sdxl
     elif args.factory == "wuerstchen":
         factory = wuerstchen
     elif args.factory == "wuerstchen_base":

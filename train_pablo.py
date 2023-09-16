@@ -1,14 +1,12 @@
+from diffusers import DiffusionPipeline
 import torch
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-model_id = "stabilityai/stable-diffusion-2-1"
+pipe = DiffusionPipeline.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
+pipe.to("cuda")
 
-# Use the DPMSolverMultistepScheduler (DPM-Solver++) scheduler here instead
-pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
-pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
-pipe = pipe.to("cuda")
+# if using torch < 2.0
+# pipe.enable_xformers_memory_efficient_attention()
 
-prompt = "a photo of an astronaut riding a horse on mars"
-image = pipe(prompt).images[0]
+prompt = "An astronaut riding a green horse"
 
-image.save("astronaut_rides_horse.png")
+images = pipe(prompt).images[0]

@@ -5,7 +5,7 @@ import torch
 import os
 
 from diffusers import AutoencoderKL, StableDiffusionKDiffusionPipeline, StableDiffusionPipeline, \
-    DPMSolverMultistepScheduler
+    DPMSolverMultistepScheduler, DiffusionPipeline
 from torchtools.utils import Diffuzz, Diffuzz2
 
 from ld_model import LDM
@@ -209,6 +209,13 @@ class BaseWuerstchenInferencer:
             decoder_output = self._get_best_clip_sample(caption)
             images += decoder_output
         return images
+
+
+def sdxl(weight_path: Path = "stabilityai/stable-diffusion-xl-base-1.0", device: str = "cpu") -> Inferencer:
+    pipe = DiffusionPipeline.from_pretrained(weight_path, torch_dtype=torch.float16,
+                                             use_safetensors=True, variant="fp16")
+    pipe.to(device)
+    return StableDiffusionInferencer(generator=pipe)
 
 def sd21(weight_path: Path = "stabilityai/stable-diffusion-2-1", device: str = "cpu") -> Inferencer:
     pipe = StableDiffusionPipeline.from_pretrained(weight_path, torch_dtype=torch.float16)
