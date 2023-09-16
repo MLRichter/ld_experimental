@@ -90,7 +90,7 @@ parser.add_argument('-c', '--gpu', default='', type=str,
 parser.add_argument('--path1', type=str, default=64)
 parser.add_argument('--path2', type=str, default=64)
 
-def get_activations(images, model, batch_size=64, dims=2048, cuda=False, verbose=True, limit=10000):
+def get_activations(images, model, batch_size=64, dims=2048, cuda=False, verbose=True, limit=300000):
     """Calculates the activations of the pool_3 layer for all images.
 
     Params:
@@ -250,8 +250,8 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
     else:
         dataset = MyDataset(path, transform=transforms.Compose([
             transforms.ToTensor(),
-            #transforms.Resize((360, 360)),
-            transforms.Resize((299, 299)),
+            transforms.Resize((512, 512)),
+            #transforms.Resize((299, 299)),
             transforms.Lambda(to_rgb)
 
         ]))
@@ -282,7 +282,7 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims):
             raise RuntimeError('Invalid path: %s' % p)
 
     block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
-    model = InceptionV3([block_idx], resize_input=False)
+    model = InceptionV3([block_idx], resize_input=True)
     if cuda:
         model.cuda()
 
