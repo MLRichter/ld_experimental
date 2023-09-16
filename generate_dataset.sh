@@ -39,4 +39,4 @@ echo "r$SLURM_NODEID master: $MASTER_ADDR"
 echo "r$SLURM_NODEID Launching python script"
 
 #cd würstchen
-srun python3 wiring_coco_inference.py $1 $2 "sdxl"
+srun python3 wiring_coco_inference.py $1 $2 "sd14"
