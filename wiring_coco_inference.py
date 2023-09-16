@@ -143,8 +143,12 @@ if __name__ == '__main__':
 
     factory_name = factory.__name__
     print(factory_name)
-    dataset_path: str = "../coco2017/coco_30k.parquet"
-    output_path: str = f"./output/{factory_name}_generated"
+    #dataset_path: str = "../coco2017/coco_30k.parquet"
+    dataset_path: str = "../coco2017/long_context_val.parquet"
+    if "coco_30k.parquet" in dataset_path:
+        output_path: str = f"./output/{factory_name}_generated"
+    else:
+        output_path: str = f"./output/{factory_name}_long_context_generated"
     device = "cuda:0"
     batch_size: int = 2
     main(factory=factory, dataset_path=dataset_path, output_path=output_path, device=device, batch_size=batch_size,

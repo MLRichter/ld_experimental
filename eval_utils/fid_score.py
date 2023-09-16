@@ -248,8 +248,7 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
     else:
         dataset = MyDataset(path, transform=transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize((256, 256)),
-            transforms.Resize((512, 512)),
+            transforms.Resize((360, 360)),
             transforms.Lambda(to_rgb)
 
         ]))
