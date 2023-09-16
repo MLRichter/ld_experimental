@@ -14,5 +14,5 @@ while [ $arg1 -le 5000 ]; do
     # Execute the other script with the arguments
     sbatch $script_to_execute $arg1 $arg2 $1
     # Increment the first argument by 500
-    arg1=$((arg1 + 2500))
+    arg1=$((arg1 + 5000))
 done
