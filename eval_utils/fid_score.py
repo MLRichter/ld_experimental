@@ -35,7 +35,9 @@ limitations under the License.
 import os
 import pathlib
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from pprint import pprint
 
+import pandas as pd
 from torch.utils.data import Dataset
 from torchvision.models.inception import inception_v3
 
@@ -250,8 +252,8 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
     else:
         dataset = MyDataset(path, transform=transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize((512, 512)),
-            #transforms.Resize((299, 299)),
+            #transforms.Resize((512, 512)),
+            transforms.Resize((256, 256)),
             transforms.Lambda(to_rgb)
 
         ]))
@@ -263,7 +265,7 @@ def _compute_statistics_of_path(path, model, batch_size, dims, cuda):
 def calculate_fid_given_dataset(dataset1, dataset2, batch_size, cuda=True, dims=2048):
     """Calculates the FID of two dataset"""
     block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
-    model = InceptionV3([block_idx])
+    model = InceptionV3([block_idx], resize_input=False)
     if cuda:
         model.cuda()
 
@@ -291,12 +293,43 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims):
     fid_value = calculate_frechet_distance(m1, s1, m2, s2)
     return fid_value
 
+def main(path1: list, path2: str = '../coco2017/val2014/', batch_size: int = 256, gpu: bool = True, dims=2048):
+    result = {}
+    for p in path1:
+        model_name = pathlib.Path(p).name
+        paths = [p, path2]
+        result[model_name] = calculate_fid_given_paths(paths, batch_size, gpu, dims)
+        pprint(result)
+    return result
+
+
 if __name__ == '__main__':
     args = parser.parse_args()
+    assert os.path.exists('../coco2017/val2014/')
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    paths = ["", ""]
-    paths[0] = args.path1
-    paths[1] = args.path2
-    print(paths)
-    fid_value = calculate_fid_given_paths(paths, args.batch_size,args.gpu,args.dims)
-    print('FID: ', fid_value)
+    #paths = ["", ""]
+    #paths[0] = args.path1
+    #paths[1] = args.path2
+    #print(paths)
+    #fid_value = calculate_fid_given_paths(paths, args.batch_size,args.gpu, args.dims)
+    #print('FID: ', fid_value)
+    paths = [
+        #"output/df_gan_generated",
+        #"output/GALIP_generated",
+        #"output/wuerstchen_generated",
+        #"output/v3_1B_coco_30k",
+        #"output/ldm14_generated",
+        #"output/sd14_generated",
+        #"output/sd21_generated",
+        #"output/sdxl_generated",
+        "output/df_gan_long_context_generated",
+        "output/GALIP_long_context_generated",
+        #"output/wuerstchen_long_context_generated",
+        #"output/ldm14_long_context_generated",
+        #"output/sd14_long_context_generated",
+        #"output/sd21_long_context_generated",
+        #"output/sdxl_long_context_generated",
+    ]
+    fid_scores = main(paths)
+    pprint(fid_scores)
+    pd.DataFrame.from_dict(fid_scores).to_csv("./output/fid_long_context_scores.csv", sep=";")

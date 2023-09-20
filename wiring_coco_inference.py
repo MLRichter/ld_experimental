@@ -143,10 +143,13 @@ if __name__ == '__main__':
 
     factory_name = factory.__name__
     print(factory_name)
-    dataset_path: str = "../coco2017/coco_30k.parquet"
+    dataset_path: str = "./results/partiprompts.parquet"
+    #dataset_path: str = "../coco2017/coco_30k.parquet"
     #dataset_path: str = "../coco2017/long_context_val.parquet"
     if "coco_30k.parquet" in dataset_path:
         output_path: str = f"./output/{factory_name}_generated"
+    elif "partiprompts" in dataset_path:
+        output_path: str = f"./output/{factory_name}_partiprompts_generated"
     else:
         output_path: str = f"./output/{factory_name}_long_context_generated"
     device = "cuda:0"

@@ -150,14 +150,16 @@ def main(dataset1: str, dataset2: str, parquet_file: str = "../coco2017/coco_30k
 
 
 if __name__ == '__main__':
-    #parquet_file = "../coco2017/long_context_val.parquet"
-    parquet_file = "../coco2017/coco_30k.parquet"
-    dataset1 = "output/wuerstchen_generated"
+    parquet_file = "../coco2017/long_context_val.parquet"
+    #parquet_file = "../coco2017/coco_30k.parquet"
+    dataset1 = "output/wuerstchen_long_context_generated"
     datasets2 = [
-        "output/sdxl_generated",
-        "output/sd14_generated",
-        "output/sd21_generated",
-        "output/ldm14_generated",
+        "output/df_gan_long_context_generated",
+        "output/GALIP_long_context_generated",
+        "output/sdxl_long_context_generated",
+        "output/sd14_long_context_generated",
+        "output/sd21_long_context_generated",
+        "output/ldm14_long_context_generated",
     ]
     final_result = {}
     for dataset2 in datasets2:

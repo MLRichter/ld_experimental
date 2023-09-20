@@ -1,0 +1,13 @@
+{"ldm14_generated": 43.516738219415515,
+ "GALIP_generated": 18.227308467179,
+ "df_gan_generated": 35.55145605276425,
+ "ldm14_long_context_generated": 64.23774664706934,
+ "sd14_generated": 16.58199935701566,
+ "sd14_long_context_generated": 21.375702021593156,
+ "sd21_generated": 15.068262615024366,
+ "sd21_long_context_generated": 21.122442499864405,
+ "sdxl_generated": 12.241908102890193,
+ "sdxl_long_context_generated": 22.190688205535366,
+ "v3_1B_coco_30k": 20.000181318586783,
+ "wuerstchen_generated": 23.553347497128186,
+ "wuerstchen_long_context_generated": 24.281206344517443}
