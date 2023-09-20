@@ -67,7 +67,7 @@ class DiffusionModelInferencer(Inferencer):
                     'clip': embeds,
                 }, (batch_size, 4, 64, 64), unconditional_inputs={
                     'clip': embeds_uncond,
-                }, cfg=7, sample_mode="e")
+                }, cfg=7, sample_mode="e", timesteps=60)
 
                 magic_norm = 0.18215
                 sampled_images = self.vae.decode(sampled / magic_norm).sample.clamp(0, 1)
