@@ -103,7 +103,7 @@ class WuerstchenInferencer(Inferencer):
         return images
 
 
-def ldm14(weight_path: Path = "../models/baseline/exp1.pt", device: str = "cpu") -> Inferencer:
+def ldm14(weight_path: Path = "../models/baseline/exp1.pt.bak", device: str = "cpu") -> Inferencer:
     generator = LDM(c_hidden=[320, 640, 1280, 1280], nhead=[5, 10, 20, 20], blocks=[[2, 4, 14, 4], [5, 15, 5, 3]],
                     level_config=['CTA', 'CTA', 'CTA', 'CTA']).cuda()
     generator.eval()
