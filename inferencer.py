@@ -260,7 +260,7 @@ def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cud
 
 
 if __name__ == '__main__':
-    pipeline = AutoPipelineForText2Image.from_pretrained("warp-ai/wuerstchen", torch_dtype=torch.float16).to("cuda")
+    pipeline = wuerstchen()
     caption = ["Anthropomorphic cat dressed as a firefighter", "Anthropomorphic cat doing a poledance"]
     images = wuerstchen()(caption)
 
