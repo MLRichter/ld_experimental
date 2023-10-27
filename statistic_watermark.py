@@ -94,6 +94,18 @@ dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
+magic_norm = 0.18215
+transforms = torchvision.transforms.Compose([
+    torchvision.transforms.ToTensor(),
+    torchvision.transforms.Resize(512, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, antialias=True),
+    torchvision.transforms.CenterCrop(512),
+    torchvision.transforms.Normalize([0.5], [0.5]),
+
+])
+
+def identity(x):
+    return x
+
 dataset = wds.WebDataset(
     dataset_path, resampled=False, handler=warn_and_continue
 ).select(
@@ -102,7 +114,9 @@ dataset = wds.WebDataset(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
     "jpg", "txt", handler=warn_and_continue
-)
+).map_tuple(
+        transforms, identity, handler=warn_and_continue
+    )
 
 real_batch_size = 1000
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
