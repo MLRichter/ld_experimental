@@ -113,7 +113,14 @@ dataset = wds.WebDataset(
 ).decode(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
-    "jpg", "txt", handler=warn_and_continue
+    "jpg",
+    "txt",
+    "original_width",
+    "pwatermark",
+    "aesthetic",
+    "AESTHETIC_SCORE",
+    "punsafe",
+    handler=warn_and_continue
 ).map_tuple(
         transforms, identity, handler=warn_and_continue
     )
@@ -131,8 +138,9 @@ filter_counter = WebdatasetFilterCounter(
     unsafe_threshold=unsafe_threshold)
 
 dataloader_iterator = iter(dataloader)
-for i, x in enumerate(tqdm(dataloader, total=2600000000)):
+for i, x in enumerate(dataloader):
     print(i, type(x[0]), type(x[1]))
+    print(x[-1])
 
     if i > 1000:
         break
