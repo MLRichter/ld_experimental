@@ -138,9 +138,21 @@ filter_counter = WebdatasetFilterCounter(
     unsafe_threshold=unsafe_threshold)
 
 dataloader_iterator = iter(dataloader)
-for i, x in enumerate(dataloader):
-    print(i, type(x[0]), type(x[1]), len(x))
-    print(x[-1])
+for i, x in enumerate(tqdm(dataloader)):
+
+    #print(i, type(x[0]), type(x[1]), len(x))
+    #print(x[-1])
+
+    batch = {
+        "txt": x[1],
+        "original_width": x[2],
+        "pwatermark": x[3],
+        "aesthetic": x[4],
+        "AESTHETIC_SCORE": x[5],
+        "punsafe": x[6],
+    }
+
+    samples = {"json": batch}
 
     if i > 1000:
         break
