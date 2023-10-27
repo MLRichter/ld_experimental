@@ -110,7 +110,7 @@ dataset = wds.WebDataset(
     dataset_path, resampled=False, handler=warn_and_continue
 ).select(
     WebdatasetFilter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
-).shuffle(690, handler=warn_and_continue).decode(
+).decode(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
     "jpg", "txt", handler=warn_and_continue
@@ -132,7 +132,7 @@ filter_counter = WebdatasetFilterCounter(
 
 dataloader_iterator = iter(dataloader)
 for i, x in enumerate(tqdm(dataloader, total=2600000000)):
-    print(i, x)
+    print(i, type(x[0]), type(x[1]))
 
     if i > 1000:
         break
