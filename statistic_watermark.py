@@ -123,7 +123,6 @@ dataset = wds.WebDataset(
 
 real_batch_size = 1000
 
-print(next(dataset))
 
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=0, pin_memory=True)
 
