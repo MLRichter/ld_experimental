@@ -115,7 +115,6 @@ dataset = wds.WebDataset(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
     "jpg",
-    "txt",
     "json",
     handler=warn_and_continue
 ).map_tuple(
@@ -126,7 +125,7 @@ real_batch_size = 1000
 
 print(next(dataset))
 
-dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
+dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=0, pin_memory=True)
 
 max_pwatermark=0.5
 aesthetic_threshold=5.0
