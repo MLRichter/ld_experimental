@@ -93,11 +93,17 @@ dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part
 dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18000}.tar,part-1/{00000..13500}.tar,part-2/{00000..13500}.tar,part-3/{00000..13500}.tar,part-4/{00000..14100}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
+
 dataset = wds.WebDataset(
     dataset_path, resampled=False, handler=warn_and_continue
 ).select(
-    WebdatasetFilter(min_size=512)
+    WebdatasetFilter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
+).shuffle(690, handler=warn_and_continue).decode(
+    "pilrgb", handler=warn_and_continue
+).to_tuple(
+    "jpg", "txt", handler=warn_and_continue
 )
+
 real_batch_size = 1000
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
 
@@ -112,8 +118,12 @@ filter_counter = WebdatasetFilterCounter(
 
 dataloader_iterator = iter(dataloader)
 for i, x in enumerate(tqdm(dataloader, total=2600000000)):
-    for xi in x:
-        filter_counter(x)
-    if i%100 == 0:
-        filter_counter.checkpoint(savepath="../stats/filter_stats_{}.json")
+    print(i, x)
+
+    if i > 1000:
+        break
+    #for xi in x:
+    #    filter_counter(x)
+    #if i%100 == 0:
+    #    filter_counter.checkpoint(savepath="../stats/filter_stats_{}.json")
 
