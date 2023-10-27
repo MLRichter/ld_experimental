@@ -122,6 +122,10 @@ dataset = wds.WebDataset(
     )
 
 real_batch_size = 1000
+
+print(len(dataset))
+print(dataset[3])
+
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
 
 max_pwatermark=0.5
