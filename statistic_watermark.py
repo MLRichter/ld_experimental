@@ -115,11 +115,7 @@ dataset = wds.WebDataset(
 ).to_tuple(
     "jpg",
     "txt",
-    "original_width",
-    "pwatermark",
-    "aesthetic",
-    "AESTHETIC_SCORE",
-    "punsafe",
+    "json",
     handler=warn_and_continue
 ).map_tuple(
         transforms, identity, handler=warn_and_continue
