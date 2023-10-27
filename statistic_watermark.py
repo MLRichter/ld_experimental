@@ -154,6 +154,10 @@ for i, x in enumerate(tqdm(dataloader)):
 
     samples = {"json": batch}
 
+    filter_counter(x)
+
+
+
     if i > 1000:
         break
     #for xi in x:
