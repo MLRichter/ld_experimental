@@ -139,7 +139,7 @@ filter_counter = WebdatasetFilterCounter(
 
 dataloader_iterator = iter(dataloader)
 for i, x in enumerate(dataloader):
-    print(i, type(x[0]), type(x[1]))
+    print(i, type(x[0]), type(x[1]), len(x))
     print(x[-1])
 
     if i > 1000:
