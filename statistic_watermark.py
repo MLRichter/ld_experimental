@@ -82,6 +82,8 @@ class WebdatasetFilterCounter():
         self.f_unsafe += filter_unsafe
         self.f_size += filter_text
         self.total += 1
+        print("updating", self.total)
+
         if self.total%10 == 0:
             self.checkpoint(savepath="../stats/filter_stats_{}.json")
 
@@ -151,5 +153,5 @@ dataloader_iterator = iter(dataloader)
 counter = WebdatasetFilterCounter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
 for i, x in enumerate(tqdm(dataset)):
     counter({"json": x[1]})
-    if i%5 == 0:
-        print(i, x)
+    #if i%5 == 0:
+    #    print(i, x)
