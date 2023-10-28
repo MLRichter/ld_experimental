@@ -98,7 +98,7 @@ class WebdatasetFilterCounter():
             }, fp)
 
     def __call__(self, x):
-        try:
+        if True:
             if 'json' in x:
                 x_json = json.loads(x['json'])
                 filter_size = (x_json.get('original_width', 0.0) or 0.0) >= self.min_size and x_json.get('original_height', 0) >= self.min_size
@@ -124,8 +124,6 @@ class WebdatasetFilterCounter():
                 return filter_size and filter_watermark and (filter_aesthetic_a or filter_aesthetic_b) and filter_unsafe and filter_text
             else:
                 return False
-        except:
-            return False
 
 
 def identity(x):
