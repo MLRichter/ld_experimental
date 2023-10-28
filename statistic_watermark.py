@@ -107,10 +107,21 @@ def identity(x):
     return x
 
 
+max_pwatermark=0.5
+aesthetic_threshold=5.0
+unsafe_threshold=0.99
+min_size = 512
+
+
+filter_counter = WebdatasetFilterCounter(
+    min_size=min_size, max_pwatermark=max_pwatermark, aesthetic_threshold=aesthetic_threshold,
+    unsafe_threshold=unsafe_threshold)
+
+
 dataset = wds.WebDataset(
     dataset_path, resampled=False, handler=warn_and_continue
 ).select(
-    WebdatasetFilter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
+    filter_counter
 ).decode(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
@@ -126,33 +137,11 @@ real_batch_size = 1000
 
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=0, pin_memory=True)
 
-max_pwatermark=0.5
-aesthetic_threshold=5.0
-unsafe_threshold=0.99
-min_size = 512
 
-filter_counter = WebdatasetFilterCounter(
-    min_size=min_size, max_pwatermark=max_pwatermark, aesthetic_threshold=aesthetic_threshold,
-    unsafe_threshold=unsafe_threshold)
 
 dataloader_iterator = iter(dataloader)
 for i, x in enumerate(tqdm(dataloader)):
-
-    #print(i, type(x[0]), type(x[1]), len(x))
-    #print(x[-1])
-
-    batch = {
-        "txt": x[1],
-        "original_width": x[2],
-        "pwatermark": x[3],
-        "aesthetic": x[4],
-        "AESTHETIC_SCORE": x[5],
-        "punsafe": x[6],
-    }
-
-    samples = {"json": batch}
-
-    filter_counter(x)
+    pass
 
 
 
@@ -160,6 +149,6 @@ for i, x in enumerate(tqdm(dataloader)):
         break
     #for xi in x:
     #    filter_counter(x)
-    #if i%100 == 0:
-    #    filter_counter.checkpoint(savepath="../stats/filter_stats_{}.json")
+    if i%100 == 0:
+        filter_counter.checkpoint(savepath="../stats/filter_stats_{}.json")
 
