@@ -99,11 +99,11 @@ class WebdatasetFilterCounter():
 
     def __call__(self, x_json):
 
-            filter_size = (x_json.get('original_width', 0.0) or 0.0) >= self.min_size and x_json.get('original_height', 0) >= self.min_size
-            filter_watermark = (x_json.get('pwatermark', 1.0) or 1.0) <= self.max_pwatermark
-            filter_aesthetic_a = (x_json.get('aesthetic', 0.0) or 0.0) >= self.aesthetic_threshold
-            filter_aesthetic_b = (x_json.get('AESTHETIC_SCORE', 0.0) or 0.0) >= self.aesthetic_threshold
-            filter_unsafe = (x_json.get('punsafe', 1.0) or 1.0) <= self.unsafe_threshold
+            filter_size = x_json.get('original_width', 0.0) >= self.min_size and x_json.get('original_height', 0) >= self.min_size
+            filter_watermark = x_json.get('pwatermark', 1.0) <= self.max_pwatermark
+            filter_aesthetic_a = x_json.get('aesthetic', 0.0) >= self.aesthetic_threshold
+            filter_aesthetic_b = x_json.get('AESTHETIC_SCORE', 0.0) >= self.aesthetic_threshold
+            filter_unsafe = x_json.get('punsafe', 1.0) <= self.unsafe_threshold
             self.update_counters(
                 filter_watermark=not filter_watermark,
                 filter_aesthetics_a=not filter_aesthetic_a,
@@ -111,10 +111,10 @@ class WebdatasetFilterCounter():
                 filter_unsafe=not filter_unsafe,
                 filter_size=not filter_size
             )
-            print("watermark", (x_json.get('pwatermark', 1.0) or 1.0), self.max_pwatermark)
-            print("filter_aesthetic_a", (x_json.get('aesthetic', 0.0) or 0.0), self.aesthetic_threshold)
-            print("filter_aesthetic_b", (x_json.get('AESTHETIC_SCORE', 0.0) or 0.0), self.aesthetic_threshold)
-            print("punsafe", (x_json.get('punsafe', 1.0) or 1.0), self.unsafe_threshold)
+            print("watermark", x_json.get('pwatermark', 1.0) , self.max_pwatermark)
+            print("filter_aesthetic_a", x_json.get('aesthetic', 0.0), self.aesthetic_threshold)
+            print("filter_aesthetic_b", x_json.get('AESTHETIC_SCORE', 0.0), self.aesthetic_threshold)
+            print("punsafe", x_json.get('punsafe', 1.0), self.unsafe_threshold)
             print()
 
 
