@@ -149,5 +149,3 @@ counter = WebdatasetFilterCounter(min_size=512, max_pwatermark=0.5, aesthetic_th
 for i, x in enumerate(tqdm(dataset)):
     to_be_counted = x[1]
     counter(to_be_counted)
-    if i%5 == 0:
-        print(i, to_be_counted)
