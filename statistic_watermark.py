@@ -76,6 +76,7 @@ class WebdatasetFilterCounter():
         self.f_unsafe = 0
         self.f_size = 0
         self.total = 0
+        self.total_filtered = 0
 
     def update_counters(self, filter_watermark, filter_aesthetics_a, filter_aesthetics_b, filter_unsafe, filter_size):
         self.f_watermark += filter_watermark
@@ -83,6 +84,7 @@ class WebdatasetFilterCounter():
         self.f_aesthetic_b += (filter_aesthetics_b)
         self.f_unsafe += filter_unsafe
         self.f_size += filter_size
+        self.total_filtered += filter_watermark or (filter_aesthetics_a and filter_aesthetics_b) or filter_unsafe or filter_size
         self.total += 1
         print("updating", self.total)
 
@@ -98,6 +100,7 @@ class WebdatasetFilterCounter():
                 'f_aesthetic_b': self.f_aesthetic_b,
                 'f_unsafe': self.f_unsafe,
                 'total': self.total,
+                "total_filtered": self.total_filtered,
             }, fp)
 
     def __call__(self, x_json):
@@ -129,10 +132,12 @@ def identity(x):
 # PREPARE DATASET
 dataset = wds.WebDataset(
         dataset_path, resampled=False, handler=warn_and_continue
+).decode(
+        "pilrgb", handler=warn_and_continue
 ).to_tuple(
-        "json", handler=warn_and_continue
+        "jpg", "json", handler=warn_and_continue
 ).map_tuple(
-        identity, handler=warn_and_continue
+        transforms, identity, handler=warn_and_continue
 )
 real_batch_size = 256
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
@@ -142,7 +147,7 @@ dataloader_iterator = iter(dataloader)
 
 counter = WebdatasetFilterCounter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
 for i, x in enumerate(tqdm(dataset)):
-    to_be_counted = x[0]
+    to_be_counted = x[1]
     counter(to_be_counted)
     if i%5 == 0:
         print(i, to_be_counted)
