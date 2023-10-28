@@ -129,12 +129,10 @@ def identity(x):
 # PREPARE DATASET
 dataset = wds.WebDataset(
         dataset_path, resampled=False, handler=warn_and_continue
-).decode(
-        "pilrgb", handler=warn_and_continue
 ).to_tuple(
-        "jpg", "json", handler=warn_and_continue
+        "json", handler=warn_and_continue
 ).map_tuple(
-        transforms, identity, handler=warn_and_continue
+        identity, handler=warn_and_continue
 )
 real_batch_size = 256
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=8, pin_memory=True)
@@ -144,7 +142,7 @@ dataloader_iterator = iter(dataloader)
 
 counter = WebdatasetFilterCounter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
 for i, x in enumerate(tqdm(dataset)):
-    to_be_counted = x[1]
+    to_be_counted = x
     counter(to_be_counted)
     if i%5 == 0:
         print(i, to_be_counted)
