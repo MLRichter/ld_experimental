@@ -126,7 +126,7 @@ dataset = wds.WebDataset(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
     "jpg",
-    "json",
+    "txt",
     handler=warn_and_continue
 ).map_tuple(
         transforms, identity, handler=warn_and_continue
