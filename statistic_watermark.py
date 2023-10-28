@@ -119,9 +119,9 @@ filter_counter = WebdatasetFilterCounter(
     unsafe_threshold=unsafe_threshold)
 
 dataset = wds.WebDataset(
-    dataset_path, resampled=False, handler=warn_and_continue
+    dataset_path, resampled=True, handler=warn_and_continue
 ).select(
-    WebdatasetFilterCounter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
+    WebdatasetFilter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
 ).shuffle(690, handler=warn_and_continue).decode(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
@@ -133,7 +133,7 @@ print("created dataset")
 real_batch_size = 1
 
 
-dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=1, pin_memory=True)
+dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=0, pin_memory=True)
 print("created dataloader")
 
 
