@@ -74,7 +74,7 @@ dataset = wds.WebDataset(
 ).shuffle(690, handler=warn_and_continue).decode(
         "pilrgb", handler=warn_and_continue
 ).to_tuple(
-        "jpg", "txt", handler=warn_and_continue
+        "jpg", "json", handler=warn_and_continue
 ).map_tuple(
         transforms, identity, handler=warn_and_continue
 )
