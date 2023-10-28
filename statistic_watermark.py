@@ -91,7 +91,6 @@ max_iters = updates * grad_accum_steps
 print_every = 10 * grad_accum_steps
 lr = 1e-4
 
-dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18699}.tar,part-1/{00000..18699}.tar,part-2/{00000..18699}.tar,part-3/{00000..18699}.tar,part-4/{00000..18699}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
 dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18000}.tar,part-1/{00000..13500}.tar,part-2/{00000..13500}.tar,part-3/{00000..13500}.tar,part-4/{00000..14100}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
@@ -140,7 +139,7 @@ print("created dataloader")
 
 dataloader_iterator = iter(dataloader)
 print("entering primary loop")
-for i, _ in enumerate((dataloader)):
+for i, _ in enumerate((dataloader_iterator)):
     print(i)
 
     if i > 1000:
