@@ -138,7 +138,7 @@ print("created dataloader")
 
 dataloader_iterator = iter(dataloader)
 print("entering primary loop")
-for i, _ in enumerate(tqdm(dataloader)):
+for i, _ in enumerate((dataloader)):
     print(i)
 
     if i > 1000:
