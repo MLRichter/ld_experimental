@@ -128,19 +128,17 @@ dataset = wds.WebDataset(
 ).map_tuple(
     transforms, identity, handler=warn_and_continue
 )
-
+print("created dataset")
 real_batch_size = 1000
 
 
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=0, pin_memory=True)
-
+print("created dataloader")
 
 
 dataloader_iterator = iter(dataloader)
+print("entering primary loop")
 for i, x in enumerate(tqdm(dataloader)):
-    pass
-
-
 
     if i > 1000:
         break
