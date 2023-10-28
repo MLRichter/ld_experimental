@@ -117,20 +117,17 @@ filter_counter = WebdatasetFilterCounter(
     min_size=min_size, max_pwatermark=max_pwatermark, aesthetic_threshold=aesthetic_threshold,
     unsafe_threshold=unsafe_threshold)
 
-
 dataset = wds.WebDataset(
-    dataset_path, resampled=False, handler=warn_and_continue
+    dataset_path, resampled=True, handler=warn_and_continue
 ).select(
-    filter_counter
-).decode(
+    WebdatasetFilter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
+).shuffle(690, handler=warn_and_continue).decode(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
-    "jpg",
-    "txt",
-    handler=warn_and_continue
+    "jpg", "txt", handler=warn_and_continue
 ).map_tuple(
-        transforms, identity, handler=warn_and_continue
-    )
+    transforms, identity, handler=warn_and_continue
+)
 
 real_batch_size = 1000
 
