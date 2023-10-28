@@ -130,7 +130,7 @@ dataset = wds.WebDataset(
     transforms, identity, handler=warn_and_continue
 )
 print("created dataset")
-real_batch_size = 1000
+real_batch_size = 1
 
 
 dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=1, pin_memory=True)
