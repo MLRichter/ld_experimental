@@ -261,7 +261,10 @@ def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cud
 
 if __name__ == '__main__':
     pipeline = wuerstchen()
-    caption = ["Anthropomorphic cat dressed as a firefighter", "Anthropomorphic cat doing a poledance"]
+    caption = [
+        "Aesthetic dramatic photography artistic",
+        "Aesthetic dramatic photography artistic",
+               ]
     images = wuerstchen()(caption)
 
     print(images)
