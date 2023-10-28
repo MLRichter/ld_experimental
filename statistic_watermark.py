@@ -71,14 +71,16 @@ class WebdatasetFilterCounter():
         self.text_conditions = text_conditions
 
         self.f_watermark = 0
-        self.f_aesthetic = 0
+        self.f_aesthetic_a = 0
+        self.f_aesthetic_b = 0
         self.f_unsafe = 0
         self.f_size = 0
         self.total = 0
 
     def update_counters(self, filter_watermark, filter_aesthetics_a, filter_aesthetics_b, filter_unsafe, filter_size):
         self.f_watermark += filter_watermark
-        self.f_aesthetic += (filter_aesthetics_a and filter_aesthetics_b)
+        self.f_aesthetic_a += (filter_aesthetics_a)
+        self.f_aesthetic_b += (filter_aesthetics_b)
         self.f_unsafe += filter_unsafe
         self.f_size += filter_size
         self.total += 1
@@ -92,7 +94,8 @@ class WebdatasetFilterCounter():
             json.dump({
                 "f_size": self.f_size,
                 'f_watermark': self.f_watermark,
-                'f_aesthetic': self.f_aesthetic,
+                'f_aesthetic_a': self.f_aesthetic_a,
+                'f_aesthetic_b': self.f_aesthetic_b,
                 'f_unsafe': self.f_unsafe,
                 'total': self.total,
             }, fp)
