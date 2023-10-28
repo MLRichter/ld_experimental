@@ -86,7 +86,7 @@ class WebdatasetFilterCounter():
         self.f_size += filter_size
         self.total_filtered += filter_watermark or (filter_aesthetics_a and filter_aesthetics_b) or filter_unsafe or filter_size
         self.total += 1
-        print("updating", self.total)
+        #print("updating", self.total)
 
         if self.total%1000 == 0:
             self.checkpoint(savepath="../stats/filter_stats.json")
@@ -117,11 +117,11 @@ class WebdatasetFilterCounter():
                 filter_unsafe=not filter_unsafe,
                 filter_size=not filter_size
             )
-            print("watermark", x_json.get('pwatermark', 1.0) , self.max_pwatermark)
-            print("filter_aesthetic_a", x_json.get('aesthetic', 0.0), self.aesthetic_threshold)
-            print("filter_aesthetic_b", x_json.get('AESTHETIC_SCORE', 0.0), self.aesthetic_threshold)
-            print("punsafe", x_json.get('punsafe', 1.0), self.unsafe_threshold)
-            print()
+            #print("watermark", x_json.get('pwatermark', 1.0) , self.max_pwatermark)
+            #print("filter_aesthetic_a", x_json.get('aesthetic', 0.0), self.aesthetic_threshold)
+            #print("filter_aesthetic_b", x_json.get('AESTHETIC_SCORE', 0.0), self.aesthetic_threshold)
+            #print("punsafe", x_json.get('punsafe', 1.0), self.unsafe_threshold)
+            #print()
 
 
 
