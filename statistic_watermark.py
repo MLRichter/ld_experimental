@@ -132,7 +132,7 @@ print("created dataset")
 real_batch_size = 1000
 
 
-dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=0, pin_memory=True)
+dataloader = DataLoader(dataset, batch_size=real_batch_size, num_workers=1, pin_memory=True)
 print("created dataloader")
 
 
