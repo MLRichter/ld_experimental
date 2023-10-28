@@ -152,6 +152,7 @@ dataloader_iterator = iter(dataloader)
 
 counter = WebdatasetFilterCounter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
 for i, x in enumerate(tqdm(dataset)):
-    counter({"json": x[1]})
-    #if i%5 == 0:
-    #    print(i, x)
+    to_be_counted = {"json": x[1]}
+    counter(to_be_counted)
+    if i%5 == 0:
+        print(i, to_be_counted)
