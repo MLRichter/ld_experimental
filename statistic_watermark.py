@@ -84,5 +84,6 @@ print("prepping dataloader")
 #dataloader_iterator = dataloader
 dataloader_iterator = iter(dataloader)
 
-for i, x in enumerate(dataloader_iterator):
-    print(i, x)
+for i, x in enumerate(tqdm(dataloader_iterator)):
+    if i%5 == 0:
+        print(i, x)
