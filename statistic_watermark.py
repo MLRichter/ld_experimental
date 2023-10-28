@@ -112,6 +112,13 @@ class WebdatasetFilterCounter():
                     filter_text = filter_min_words and filter_ord_128 and filter_forbidden_words
                 else:
                     filter_text = True
+                self.update_counters(
+                    filter_watermark=filter_watermark,
+                    filter_aesthetics_a=filter_aesthetic_a,
+                    filter_aesthetics_b=filter_aesthetic_b,
+                    filter_unsafe=filter_unsafe,
+                    filter_text=filter_text
+                )
                 return filter_size and filter_watermark and (filter_aesthetic_a or filter_aesthetic_b) and filter_unsafe and filter_text
             else:
                 return False
