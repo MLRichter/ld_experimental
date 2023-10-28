@@ -74,7 +74,7 @@ dataset = wds.WebDataset(
 ).shuffle(690, handler=warn_and_continue).decode(
         "pilrgb", handler=warn_and_continue
 ).to_tuple(
-        "jpg", "json", handler=warn_and_continue
+        "jpg", "txt", handler=warn_and_continue
 ).map_tuple(
         transforms, identity, handler=warn_and_continue
 )
@@ -84,6 +84,6 @@ print("prepping dataloader")
 #dataloader_iterator = dataloader
 dataloader_iterator = iter(dataloader)
 
-for i, x in enumerate(tqdm(dataloader_iterator)):
+for i, x in enumerate(tqdm(dataset)):
     if i%5 == 0:
         print(i, x)
