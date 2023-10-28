@@ -119,9 +119,9 @@ filter_counter = WebdatasetFilterCounter(
     unsafe_threshold=unsafe_threshold)
 
 dataset = wds.WebDataset(
-    dataset_path, resampled=True, handler=warn_and_continue
+    dataset_path, resampled=False, handler=warn_and_continue
 ).select(
-    WebdatasetFilter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
+    WebdatasetFilterCounter(min_size=512, max_pwatermark=0.5, aesthetic_threshold=5.0, unsafe_threshold=0.99)
 ).shuffle(690, handler=warn_and_continue).decode(
     "pilrgb", handler=warn_and_continue
 ).to_tuple(
