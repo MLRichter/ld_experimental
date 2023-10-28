@@ -84,11 +84,11 @@ class WebdatasetFilterCounter():
         self.total += 1
         print("updating", self.total)
 
-        if self.total%10 == 0:
-            self.checkpoint(savepath="../stats/filter_stats_{}.json")
+        if self.total%1000 == 0:
+            self.checkpoint(savepath="../stats/filter_stats.json")
 
     def checkpoint(self, savepath: str):
-        with open(savepath.format(self.total), "w") as fp:
+        with open(savepath, "w") as fp:
             json.dump({
                 "f_size": self.f_size,
                 'f_watermark': self.f_watermark,
@@ -125,8 +125,8 @@ def identity(x):
 # --- PREPARE DATASET ---
 # PREPARE DATASET
 dataset = wds.WebDataset(
-        dataset_path, resampled=True, handler=warn_and_continue
-).shuffle(690, handler=warn_and_continue).decode(
+        dataset_path, resampled=False, handler=warn_and_continue
+).decode(
         "pilrgb", handler=warn_and_continue
 ).to_tuple(
         "jpg", "json", handler=warn_and_continue
