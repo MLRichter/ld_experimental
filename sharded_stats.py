@@ -35,7 +35,7 @@ class WebdatasetFilterCounter():
         self.total = 0
         self.total_filtered = 0
 
-    def update_counters(self, filter_watermark, filter_aesthetics_a, filter_aesthetics_b, filter_unsafe, filter_size, part, shard_range):
+    def update_counters(self, filter_watermark, filter_aesthetics_a, filter_aesthetics_b, filter_unsafe, filter_size):
         self.f_watermark += filter_watermark
         self.f_aesthetic_a += (filter_aesthetics_a)
         self.f_aesthetic_b += (filter_aesthetics_b)
