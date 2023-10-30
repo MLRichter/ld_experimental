@@ -35,7 +35,7 @@ class WebdatasetFilterCounter():
         self.total = 0
         self.total_filtered = 0
 
-    def update_counters(self, filter_watermark, filter_aesthetics_a, filter_aesthetics_b, filter_unsafe, filter_size):
+    def update_counters(self, filter_watermark, filter_aesthetics_a, filter_aesthetics_b, filter_unsafe, filter_size, part, shard_range):
         self.f_watermark += filter_watermark
         self.f_aesthetic_a += (filter_aesthetics_a)
         self.f_aesthetic_b += (filter_aesthetics_b)
@@ -43,10 +43,6 @@ class WebdatasetFilterCounter():
         self.f_size += filter_size
         self.total_filtered += filter_watermark or (filter_aesthetics_a and filter_aesthetics_b) or filter_unsafe or filter_size
         self.total += 1
-        #print("updating", self.total)
-
-        if self.total%1000 == 0:
-            self.checkpoint(savepath="../stats/filter_stats.json")
 
     def checkpoint(self, savepath: str, part: int, shard_range: str):
         """Save the stats to a json file, including part and shard info in filename."""
@@ -115,8 +111,11 @@ def main(part, shard_range):
     for i, x in enumerate(tqdm(dataset)):
         to_be_counted = x[1]
         counter(to_be_counted)
+        if (counter.total % 10000) == 0:
+            counter.checkpoint(savepath="../stats/sharded/", part=part, shard_range=shard_range)
 
     # Note: When calling checkpoint, include part and shard_range:
+
     counter.checkpoint(savepath="../stats/sharded/", part=part, shard_range=shard_range)
 
 
