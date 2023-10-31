@@ -84,10 +84,8 @@ class WebdatasetFilterCounter():
 def identity(x):
     return x
 
-@click.command()
-@click.option('--part', default=0, type=int, help='Part of the dataset to process.')
-@click.option('--shard_range', default="00000", type=str, help='Range of shards for the dataset part.')
-def main(part, shard_range):
+
+def process_shard(part, shard_range):
     dataset_path = f"pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/part-{part}/{shard_range}.tar -"
 
     # --- PREPARE DATASET ---
@@ -117,6 +115,21 @@ def main(part, shard_range):
     # Note: When calling checkpoint, include part and shard_range:
 
     counter.checkpoint(savepath="../stats/sharded/", part=part, shard_range=shard_range)
+    with open(f"../stats/sharded/{part}_{shard_range}.done", "w") as fp:
+        fp.write(f"part={part}\nshard={shard_range}\ncounter={counter.total}\nfiltered={counter.total_filtered}")
+
+
+
+
+@click.command()
+@click.option('--part', default=0, type=int, help='Part of the dataset to process.')
+@click.option('--shard_range_start', default=0, type=int, help='Range of shards for the dataset part.')
+@click.option('--shard_range_end', default=100, type=int, help='Range of shards for the dataset part.')
+def main(part, shard_range_start, shard_range_end):
+    for shard in range(shard_range_start, shard_range_end):
+        shard_repr = str(shard).zfill(5)
+        process_shard(part, shard_repr)
+
 
 
 if __name__ == "__main__":
