@@ -86,6 +86,9 @@ def identity(x):
 
 
 def process_shard(part, shard_range):
+    if os.path.exists(f"../stats/sharded{part}/{part}_{shard_range}.done"):
+        print("found cached results at", f"../stats/sharded{part}/{part}_{shard_range}.done", "returning...")
+        return
     dataset_path = f"pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/part-{part}/{shard_range}.tar -"
 
     # --- PREPARE DATASET ---
@@ -110,12 +113,12 @@ def process_shard(part, shard_range):
         to_be_counted = x[1]
         counter(to_be_counted)
         if (counter.total % 10000) == 0:
-            counter.checkpoint(savepath="../stats/sharded/", part=part, shard_range=shard_range)
+            counter.checkpoint(savepath=f"../stats/sharded{part}/", part=part, shard_range=shard_range)
 
     # Note: When calling checkpoint, include part and shard_range:
 
-    counter.checkpoint(savepath="../stats/sharded/", part=part, shard_range=shard_range)
-    with open(f"../stats/sharded/{part}_{shard_range}.done", "w") as fp:
+    counter.checkpoint(savepath=f"../stats/sharded{part}/", part=part, shard_range=shard_range)
+    with open(f"../stats/sharded{part}/{part}_{shard_range}.done", "w") as fp:
         fp.write(f"part={part}\nshard={shard_range}\ncounter={counter.total}\nfiltered={counter.total_filtered}")
 
 
@@ -129,7 +132,6 @@ def main(part, shard_range_start, shard_range_end):
     for shard in range(shard_range_start, shard_range_end):
         shard_repr = str(shard).zfill(5)
         process_shard(part, shard_repr)
-
 
 
 if __name__ == "__main__":
