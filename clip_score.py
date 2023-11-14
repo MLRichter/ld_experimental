@@ -10,7 +10,7 @@ import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from torchvision.models.inception import inception_v3
 
-
+import clip
 import torch
 import numpy as np
 from scipy import linalg
@@ -91,27 +91,57 @@ def compute_clip_score(path =  '../coco2017/val2014/', parquet: str = "../coco20
             transforms.Lambda(to_rgb)
         ]))
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=5, pin_memory=True)
-    clip = CLIPScore()
+    clip = CLIPScore(model_name_or_path="laion/CLIP-ViT-g-14-laion2B-s12B-b42K")
     clip.cuda()
-    for batch, captions in tqdm(loader):
+    pbar = tqdm(loader)
+    pbar.set_description(f"CLIP-Score NAN")
+    for i, (batch, captions) in enumerate(pbar):
         batch = batch.cuda()
         clip.update(batch, text=captions)
+        if i%5 == 0:
+            pbar.set_description(f"CLIP-Score {clip.compute().detach().cpu().item()}")
     return clip.compute()
 
+@torch.no_grad()
+def compute_clip_score2(path =  '../coco2017/val2014/', parquet: str = "../coco2017/long_context_val.parquet", batch_size: int = 256, gpu: bool = True, dims=2048):
+    """Calculates the IC of two paths"""
+    dataset = MyDataset(image_paths=parquet, root=path, transform=None)
+    #loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=5, pin_memory=True)
+    clip_model, preprocess = clip.load("ViT-L/14", device="cuda:0")
+    similarities = 0.0
+    pbar = tqdm(range(len(dataset)))
+    for i in pbar:
+        img, caption = dataset[i]
+        try:
+            image = preprocess(img).unsqueeze(0)
+            image_embedding = clip_model.encode_image(image.to("cuda:0"))
+            text_embedding = clip_model.encode_text(clip.tokenize(caption).to("cuda:0"))
+        except:
+            continue
+        similarity = (image_embedding / image_embedding.norm(dim=1, keepdim=True) @ (text_embedding / text_embedding.norm(dim=1, keepdim=True)).T).cpu().item()
+        similarities += similarity
+        pbar.set_postfix({"similarity": similarities / (i+1)})
+    return similarities / len(dataset)
 
 
 def main():
     paths = [
+        #"output/wuerstchen_partiprompts_generated",
+        #"output/df_gan_partiprompts_generated",
+        #"output/GALIP_partiprompts_generated",
+        #"output/ldm14_partiprompts_generated",
+        #"output/sd14_partiprompts_generated",
+        #"output/sd21_partiprompts_generated",
+        #"output/sdxl_partiprompts_generated",
 
-        "output/wuerstchen_generated",
-        "output/GALIP_generated",
-        '../coco2017/val2014/',
-        "output/df_gan_generated",
-        "output/v3_1B_coco_30k",
-        "output/ldm14_generated",
-        "output/sd14_generated",
-        "output/sd21_generated",
-        "output/sdxl_generated",
+        #"output/wuerstchen_generated",
+        #"output/df_gan_generated",
+        #"output/GALIP_generated",
+        #"output/ldm14_generated",
+        #"output/sd14_generated",
+        #"output/sd21_generated",
+        #"output/sdxl_generated",
+
         "output/df_gan_long_context_generated",
         "output/GALIP_long_context_generated",
         "output/wuerstchen_long_context_generated",
@@ -122,13 +152,16 @@ def main():
     ]
     #parquet_file = "../coco2017/long_context_val.parquet"
     parquet_file = "../coco2017/coco_30k.parquet"
-    result = {}
+    result = {'model': [], "clip-score": []}
     for path in paths:
         parquet_file = "../coco2017/coco_30k.parquet" if "long_context" not in path else "../coco2017/long_context_val.parquet"
+        parquet_file = parquet_file if "partiprompts" not in path else "./results/partiprompts.parquet"
+        print(parquet_file)
         name = pathlib.Path(path).name
-        c_score = compute_clip_score(path, parquet=parquet_file)
+        c_score = compute_clip_score2(path, parquet=parquet_file)
         pprint(c_score)
-        result[f"{name}"] = [c_score.detach().cpu().item()]
+        result['model'].append(name)
+        result["clip-score"].append(c_score)
         pd.DataFrame.from_dict(result).to_csv("./output/clip_scores.csv", sep=";")
 
 
