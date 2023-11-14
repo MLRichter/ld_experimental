@@ -30,7 +30,7 @@ warmup_updates = 10000
 batch_size = 512#1536  # 1024 # 2048 # 4096
 grad_accum_steps = 8
 max_iters = updates * grad_accum_steps
-print_every = grad_accum_steps
+print_every = 4*grad_accum_steps
 lr = 1e-4
 
 dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18699}.tar,part-1/{00000..18699}.tar,part-2/{00000..18699}.tar,part-3/{00000..18699}.tar,part-4/{00000..18699}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
