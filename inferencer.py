@@ -79,8 +79,8 @@ class DiffusionModelInferencer(Inferencer):
 class StableDiffusionInferencer(Inferencer):
     generator: StableDiffusionPipeline
 
-    def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2):
-        sampled = self.generator(captions)
+    def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2, cfg: float = 7.5):
+        sampled = self.generator(captions, guidance_scale=cfg)
         return sampled.images
 
 
@@ -88,7 +88,7 @@ class StableDiffusionInferencer(Inferencer):
 class WuerstchenInferencer(Inferencer):
     generator: StableDiffusionPipeline
 
-    def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2):
+    def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2, cfg: float = 4.0):
         images = []
         for caption in captions:
             sampled = self.generator(
@@ -96,7 +96,7 @@ class WuerstchenInferencer(Inferencer):
             height=1024,
             width=1024,
             prior_timesteps=DEFAULT_STAGE_C_TIMESTEPS,
-            prior_guidance_scale=4.0,
+            prior_guidance_scale=cfg,
             num_images_per_prompt=1,
         ).images
             images += sampled
@@ -262,10 +262,10 @@ def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cud
 if __name__ == '__main__':
     pipeline = wuerstchen()
     caption = [
-        "Aesthetic dramatic photography artistic",
-        "Aesthetic dramatic photography artistic",
+        "Cute cat, big eyes pixar style.",
+        "Cute cat, big eyes pixar style.",
                ]
-    images = wuerstchen()(caption)
+    images = wuerstchen()(caption, cfg=0.2)
 
     print(images)
     images[0].save("img1.jpg")
