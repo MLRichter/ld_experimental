@@ -46,7 +46,7 @@ wandb_run_name = "LDTrain"
 wandb_config = {
     "model_type": 'Latent Diffusion 0.87M',
     "target": f'{target}-target',
-    "image_size": "768x768",
+    "image_size": "1024x1024",
     "batch_size": batch_size,
     "warmup_updates": warmup_updates,
     "lr": lr,
@@ -56,8 +56,8 @@ wandb_config = {
 magic_norm = 0.18215
 transforms = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
-    torchvision.transforms.Resize(768, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, antialias=True),
-    torchvision.transforms.CenterCrop(768),
+    torchvision.transforms.Resize(1024, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, antialias=True),
+    torchvision.transforms.CenterCrop(1024),
     torchvision.transforms.Normalize([0.5], [0.5]),
 
 ])
@@ -317,7 +317,7 @@ def train(gpu_id, world_size, n_nodes):
 
                 generator.eval()
                 images, captions = next(dataloader_iterator)
-                while images.size(0) < 8:  # 8
+                while images.size(0) < 2:  # 8
                     #_images, _captions = dataset[it+i]
                     _images, _captions = next(dataloader_iterator)
                     images = torch.cat([images, _images], dim=0)
