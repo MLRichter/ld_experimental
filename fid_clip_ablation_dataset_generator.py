@@ -61,7 +61,7 @@ coco_caption_loader = coco_caption_loader_pyarrow
 
 
 def _poly_save(image: Union[torch.Tensor, PIL.Image.Image], savename: Path) -> None:
-    savename = Path(savename).with_suffix(".png")
+    savename = Path(savename).with_suffix(".jpg")
     if isinstance(image, torch.Tensor):
         torchvision.utils.save_image(image.float().cpu(), savename)
     else:
@@ -149,8 +149,8 @@ if __name__ == '__main__':
 
         factory_name = factory.__name__
         print(factory_name)
-        dataset_path: str = "./results/partiprompts.parquet"
-        #dataset_path: str = "../coco2017/coco_30k.parquet"
+        #dataset_path: str = "./results/partiprompts.parquet"
+        dataset_path: str = "../coco2017/coco_30k.parquet"
         #dataset_path: str = "../coco2017/long_context_val.parquet"
         if "coco_30k.parquet" in dataset_path:
             output_path: str = f"./output/{factory_name}_{cfg}_generated"
