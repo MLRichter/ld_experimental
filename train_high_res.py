@@ -30,7 +30,7 @@ warmup_updates = 10000
 batch_size = 1536  # 1024 # 2048 # 4096
 grad_accum_steps = 24
 max_iters = updates * grad_accum_steps
-print_every = 2 * grad_accum_steps
+print_every = grad_accum_steps
 lr = 1e-4
 
 dataset_path = "pipe:aws s3 cp s3://stability-west/laion-a-native-high-res/{part-0/{00000..18699}.tar,part-1/{00000..18699}.tar,part-2/{00000..18699}.tar,part-3/{00000..18699}.tar,part-4/{00000..18699}.tar} -"  # "pipe:aws s3 cp s3://laion-west/humans-7M-with-blip-caps+aesthetics+nsfw/00000{1..5499}.tar -"
@@ -46,7 +46,7 @@ wandb_run_name = "LDTrain"
 wandb_config = {
     "model_type": 'Latent Diffusion 0.87M',
     "target": f'{target}-target',
-    "image_size": "1024x1024",
+    "image_size": "786x786",
     "batch_size": batch_size,
     "warmup_updates": warmup_updates,
     "lr": lr,
@@ -56,8 +56,8 @@ wandb_config = {
 magic_norm = 0.18215
 transforms = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
-    torchvision.transforms.Resize(1024, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, antialias=True),
-    torchvision.transforms.CenterCrop(1024),
+    torchvision.transforms.Resize(786, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, antialias=True),
+    torchvision.transforms.CenterCrop(786),
     torchvision.transforms.Normalize([0.5], [0.5]),
 
 ])
