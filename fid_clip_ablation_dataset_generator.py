@@ -131,7 +131,6 @@ if __name__ == '__main__':
     cfg_values = [1.0, 3.0, 5.0, 7.0, 9.0]
 
     for cfg in cfg_values:
-
         if args.factory == "sd14":
             factory = sd14
         elif args.factory == "sd21":
