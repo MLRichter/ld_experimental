@@ -80,7 +80,7 @@ class StableDiffusionInferencer(Inferencer):
     generator: StableDiffusionPipeline
 
     def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2, cfg: float = 7.5):
-        sampled = self.generator(captions, guidance_scale=cfg)
+        sampled = self.generator(captions, guidance_scale=cfg if cfg != 1.0 else cfg + .00001)
         return sampled.images
 
 
@@ -224,7 +224,7 @@ def sd21(weight_path: Path = "stabilityai/stable-diffusion-2-1", device: str = "
     return StableDiffusionInferencer(generator=pipe)
 
 
-def sd14(weight_path: Path = "CompVis/stable-diffusion-v1-4", device: str = "cpu") -> Inferencer:
+def sd14(weight_path: Path = "CompVis/stable-diffusion-v1-4", device: str = "cuda:0") -> Inferencer:
     model = StableDiffusionKDiffusionPipeline.from_pretrained(
         weight_path, revision="fp16", torch_dtype=torch.float16
     )
@@ -260,12 +260,12 @@ def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cud
 
 
 if __name__ == '__main__':
-    pipeline = wuerstchen()
+    pipeline = sd14()
     caption = [
         "Cute cat, big eyes pixar style.",
         "Cute cat, big eyes pixar style.",
                ]
-    images = wuerstchen()(caption, cfg=0.2)
+    images = pipeline(caption, cfg=9.0)
 
     print(images)
     images[0].save("img1.jpg")
