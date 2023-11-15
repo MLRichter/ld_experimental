@@ -57,4 +57,4 @@ def main(dataset_1: str, dataset_2: str):
 
 
 if __name__ == '__main__':
-    main('../coco2017/coco_subset/', 'output/sd14_generated/')
+    main('../coco2017/coco_subset/', 'output/wuerstchen_1.0_generated/')

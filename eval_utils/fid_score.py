@@ -320,6 +320,7 @@ if __name__ == '__main__':
         #"output/df_gan_generated",
         #"output/GALIP_generated",
         #"../output/wuerstchen_generated",
+        "../output/wuerstchen_0.5_generated",
         "../output/wuerstchen_1.0_generated",
         "../output/wuerstchen_3.0_generated",
         "../output/wuerstchen_5.0_generated",
