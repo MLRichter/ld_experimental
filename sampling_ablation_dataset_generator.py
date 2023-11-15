@@ -113,7 +113,7 @@ def main(
         ids.append(id)
 
         if len(prompts) == batch_size:
-            images = model(prompts, device, batch_size=batch_size, cfg=cfg)
+            images = model(prompts, device, batch_size=batch_size, spl=cfg)
             save_image(images, output_path=output_path, i=ids)
             processed_datapoints += len(images)
             prompts = []
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     weight_path: str = "./models/baseline/exp1.pt"
 
     #cfg_values = [1.0, 3.0, 5.0, 7.0, 9.0]
-    cfg_values = [0.5]
+    cfg_values = [5, 10, 20, 40, 80, 160]
 
     for cfg in cfg_values:
         if args.factory == "sd14":
@@ -153,11 +153,11 @@ if __name__ == '__main__':
         dataset_path: str = "../coco2017/coco_30k.parquet"
         #dataset_path: str = "../coco2017/long_context_val.parquet"
         if "coco_30k.parquet" in dataset_path:
-            output_path: str = f"./output/{factory_name}_{cfg}_generated"
+            output_path: str = f"./output/{factory_name}_spl{cfg}_generated"
         elif "partiprompts" in dataset_path:
-            output_path: str = f"./output/{factory_name}_{cfg}_partiprompts_generated"
+            output_path: str = f"./output/{factory_name}_spl{cfg}_partiprompts_generated"
         else:
-            output_path: str = f"./output/{factory_name}_{cfg}_long_context_generated"
+            output_path: str = f"./output/{factory_name}_spl{cfg}_long_context_generated"
         device = "cuda:0"
         batch_size: int = 2
         main(factory=factory, dataset_path=dataset_path, output_path=output_path, device=device, batch_size=batch_size,
