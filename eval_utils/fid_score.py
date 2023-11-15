@@ -293,19 +293,22 @@ def calculate_fid_given_paths(paths, batch_size, cuda, dims):
     fid_value = calculate_frechet_distance(m1, s1, m2, s2)
     return fid_value
 
-def main(path1: list, path2: str = '../coco2017/val2014/', batch_size: int = 256, gpu: bool = True, dims=2048):
-    result = {}
+def main(path1: list, path2: str = '../../coco2017/val2014/', batch_size: int = 256, gpu: bool = True, dims=2048):
+    result = {'model': [], "fid": [], "original": []}
     for p in path1:
         model_name = pathlib.Path(p).name
         paths = [p, path2]
-        result[model_name] = calculate_fid_given_paths(paths, batch_size, gpu, dims)
+        fid = calculate_fid_given_paths(paths, batch_size, gpu, dims)
+        result['model'].append(model_name)
+        result['fid'].append(fid)
+        result['original'].append(path2)
         pprint(result)
     return result
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    assert os.path.exists('../coco2017/val2014/')
+    assert os.path.exists('../../coco2017/val2014/')
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     #paths = ["", ""]
     #paths[0] = args.path1
@@ -316,14 +319,19 @@ if __name__ == '__main__':
     paths = [
         #"output/df_gan_generated",
         #"output/GALIP_generated",
-        #"output/wuerstchen_generated",
+        #"../output/wuerstchen_generated",
+        "../output/wuerstchen_1.0_generated",
+        "../output/wuerstchen_3.0_generated",
+        "../output/wuerstchen_5.0_generated",
+        "../output/wuerstchen_7.0_generated",
+        "../output/wuerstchen_9.0_generated",
         #"output/v3_1B_coco_30k",
         #"output/ldm14_generated",
         #"output/sd14_generated",
         #"output/sd21_generated",
         #"output/sdxl_generated",
-        "output/df_gan_long_context_generated",
-        "output/GALIP_long_context_generated",
+        #"output/df_gan_long_context_generated",
+        #"output/GALIP_long_context_generated",
         #"output/wuerstchen_long_context_generated",
         #"output/ldm14_long_context_generated",
         #"output/sd14_long_context_generated",
@@ -332,4 +340,4 @@ if __name__ == '__main__':
     ]
     fid_scores = main(paths)
     pprint(fid_scores)
-    pd.DataFrame.from_dict(fid_scores).to_csv("./output/fid_long_context_scores.csv", sep=";")
+    pd.DataFrame.from_dict(fid_scores).to_csv("../output/fid_cfg.csv", sep=";")

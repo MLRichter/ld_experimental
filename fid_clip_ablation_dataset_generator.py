@@ -128,7 +128,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     weight_path: str = "./models/baseline/exp1.pt"
 
-    cfg_values = [1.0, 3.0, 5.0, 7.0, 9.0]
+    #cfg_values = [1.0, 3.0, 5.0, 7.0, 9.0]
+    cfg_values = [0.5]
 
     for cfg in cfg_values:
         if args.factory == "sd14":

@@ -134,6 +134,12 @@ def main():
         #"output/sd21_partiprompts_generated",
         #"output/sdxl_partiprompts_generated",
 
+        "output/wuerstchen_1.0_generated",
+        "output/wuerstchen_3.0_generated",
+        "output/wuerstchen_5.0_generated",
+        "output/wuerstchen_7.0_generated",
+        "output/wuerstchen_9.0_generated",
+
         #"output/wuerstchen_generated",
         #"output/df_gan_generated",
         #"output/GALIP_generated",
@@ -142,13 +148,13 @@ def main():
         #"output/sd21_generated",
         #"output/sdxl_generated",
 
-        "output/df_gan_long_context_generated",
-        "output/GALIP_long_context_generated",
-        "output/wuerstchen_long_context_generated",
-        "output/ldm14_long_context_generated",
-        "output/sd14_long_context_generated",
-        "output/sd21_long_context_generated",
-        "output/sdxl_long_context_generated",
+        #"output/df_gan_long_context_generated",
+        #"output/GALIP_long_context_generated",
+        #"output/wuerstchen_long_context_generated",
+        #"output/ldm14_long_context_generated",
+        #"output/sd14_long_context_generated",
+        #"output/sd21_long_context_generated",
+        #"output/sdxl_long_context_generated",
     ]
     #parquet_file = "../coco2017/long_context_val.parquet"
     parquet_file = "../coco2017/coco_30k.parquet"
@@ -162,7 +168,7 @@ def main():
         pprint(c_score)
         result['model'].append(name)
         result["clip-score"].append(c_score)
-        pd.DataFrame.from_dict(result).to_csv("./output/clip_scores.csv", sep=";")
+        pd.DataFrame.from_dict(result).to_csv("./output/clip_cfg_wuerstchen_scores.csv", sep=";")
 
 
 if __name__ == '__main__':
