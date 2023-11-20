@@ -276,6 +276,10 @@ class TextEncoderWarapper:
         x.pooler_output = x.pooler_output * 0
         return x
 
+    @property
+    def dtype(self):
+        return self.to_wrap.dtype
+
 
 def wuerstchen_no_text(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0", compile: bool = False) -> Inferencer:
     pipeline = AutoPipelineForText2Image.from_pretrained(weight_path, torch_dtype=torch.float16).to(device)
@@ -284,9 +288,21 @@ def wuerstchen_no_text(weight_path: Path = "warp-ai/wuerstchen", device: str = "
         pipeline.decoder = torch.compile(pipeline.decoder, mode="reduce-overhead", fullgraph=True)
 
     pipeline.set_progress_bar_config(leave=True)
-    model = WuerstchenInferencer(pipeline)
-    model.generator.decoder_pipe.text_encoder = TextEncoderWarapper(model.generator.decoder_pipe.text_encoder)
+    pipeline.decoder_pipe.text_encoder = TextEncoderWarapper(pipeline.decoder_pipe.text_encoder)
 
+    model = WuerstchenInferencer(pipeline)
+    return model
+
+
+def wuerstchen_no_prior_text(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0", compile: bool = False) -> Inferencer:
+    pipeline = AutoPipelineForText2Image.from_pretrained(weight_path, torch_dtype=torch.float16).to(device)
+    if compile:
+        pipeline.prior_prior = torch.compile(pipeline.prior_prior, mode="reduce-overhead", fullgraph=True)
+        pipeline.decoder = torch.compile(pipeline.decoder, mode="reduce-overhead", fullgraph=True)
+
+    pipeline.set_progress_bar_config(leave=True)
+    pipeline.prior_pipe.text_encoder = TextEncoderWarapper(pipeline.prior_pipe.text_encoder)
+    model = WuerstchenInferencer(pipeline)
     return model
 
 
@@ -314,7 +330,7 @@ if __name__ == '__main__':
         "Cute cat, big eyes pixar style.",
                ]
     import numpy
-    pipeline = wuerstchen_no_text()
+    pipeline = wuerstchen_no_prior_text()
     #pipeline.generator.decoder_pipe.text_encoder = TextEncoderWarapper(pipeline.generator.decoder_pipe.text_encoder)
     images = pipeline(caption)
 
