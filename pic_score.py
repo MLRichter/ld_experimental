@@ -150,13 +150,13 @@ def main(dataset1: str, dataset2: str, parquet_file: str = "../coco2017/coco_30k
 
 
 if __name__ == '__main__':
-    #parquet_file = "./results/partiprompts.parquet"
+    parquet_file = "./results/partiprompts.parquet"
     #parquet_file = "../coco2017/long_context_val.parquet"
-    parquet_file = "../coco2017/coco_30k.parquet"
-    dataset1 = "output/wuerstchen_generated"
+    #parquet_file = "../coco2017/coco_30k.parquet"
+    dataset1 = "output/wuerstchen_partiprompts_generated"
     datasets2 = [
-        "output/wuerstchen_no_text_generated",
-        "output/wuerstchen_no_prior_text_generated",
+        "output/wuerstchen_no_text_partiprompts_generated",
+        "output/wuerstchen_no_prior_partiprompts_text_generated",
         #"output/ldm14_partiprompts_generated",
         #"output/df_gan_partiprompts_generated",
         #"output/GALIP_partiprompts_generated",

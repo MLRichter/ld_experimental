@@ -319,13 +319,15 @@ if __name__ == '__main__':
     paths = [
         #"output/df_gan_generated",
         #"output/GALIP_generated",
-        #"../output/wuerstchen_generated",
-        "../output/wuerstchen_spl5_generated",
-        "../output/wuerstchen_spl10_generated",
-        "../output/wuerstchen_spl20_generated",
-        "../output/wuerstchen_spl40_generated",
-        "../output/wuerstchen_spl80_generated",
-        "../output/wuerstchen_spl160_generated",
+        "../output/wuerstchen_partiprompts_generated",
+        "../output/wuerstchen_no_text_partiprompts_generated",
+        "../output/wuerstchen_no_prior_partiprompts_text_generated",
+        #"../output/wuerstchen_spl5_generated",
+        #"../output/wuerstchen_spl10_generated",
+        #"../output/wuerstchen_spl20_generated",
+        #"../output/wuerstchen_spl40_generated",
+        #"../output/wuerstchen_spl80_generated",
+        #"../output/wuerstchen_spl160_generated",
         #"../output/sd21_1.0_generated",
         #"../output/sd21_3.0_generated",
         #"../output/sd21_5.0_generated",
@@ -353,4 +355,4 @@ if __name__ == '__main__':
     ]
     fid_scores = main(paths)
     pprint(fid_scores)
-    pd.DataFrame.from_dict(fid_scores).to_csv("../output/fid_spl.csv", sep=";")
+    pd.DataFrame.from_dict(fid_scores).to_csv("../output/fid_pp_appendix_j.csv", sep=";")

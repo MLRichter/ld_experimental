@@ -186,7 +186,7 @@ def main():
         pprint(c_score)
         result['model'].append(name)
         result["clip-score"].append(c_score)
-        pd.DataFrame.from_dict(result).to_csv("./output/clip_cfg_wuerstchen_scores2.csv", sep=";")
+        pd.DataFrame.from_dict(result).to_csv("./output/clip_appendix_j.csv", sep=";")
 
 
 if __name__ == '__main__':
