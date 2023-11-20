@@ -265,6 +265,30 @@ def wuerstchen(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0",
     return model
 
 
+class TextEncoderWarapper:
+
+    def __init__(self, to_wrap):
+        self.to_wrap = to_wrap
+
+    def __call__(self, *args, **kwargs):
+        x = self.to_wrap(*args, **kwargs)
+        x.last_hidden_state = x.last_hidden_state * 0
+        x.pooler_output = x.pooler_output * 0
+        return x
+
+
+def wuerstchen_no_text(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0", compile: bool = False) -> Inferencer:
+    pipeline = AutoPipelineForText2Image.from_pretrained(weight_path, torch_dtype=torch.float16).to(device)
+    pipeline.generator.decoder_pipe.text_encoder = TextEncoderWarapper(pipeline.generator.decoder_pipe.text_encoder)
+    if compile:
+        pipeline.prior_prior = torch.compile(pipeline.prior_prior, mode="reduce-overhead", fullgraph=True)
+        pipeline.decoder = torch.compile(pipeline.decoder, mode="reduce-overhead", fullgraph=True)
+
+    pipeline.set_progress_bar_config(leave=True)
+    model = WuerstchenInferencer(pipeline)
+    return model
+
+
 def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cuda:0", compile: bool = False) -> Inferencer:
     pipeline = AutoPipelineForText2Image.from_pretrained(weight_path, torch_dtype=torch.float16).to(device)
     if compile:
@@ -279,16 +303,7 @@ def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cud
     model = BaseWuerstchenInferencer()
     return model
 
-class TextEncoderWarapper:
 
-    def __init__(self, to_wrap):
-        self.to_wrap = to_wrap
-
-    def __call__(self, *args, **kwargs):
-        x = self.to_wrap(*args, **kwargs)
-        x.last_hidden_state = x.last_hidden_state * 0
-        x.pooler_output = x.pooler_output * 0
-        return x
 
 if __name__ == '__main__':
     #torch.set_default_device("cuda:0")
