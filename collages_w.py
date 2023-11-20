@@ -103,13 +103,21 @@ if __name__ == '__main__':
     #    "./output/df_gan_partiprompts_generated": 'DF-GAN',
     #}
 
+    #source_names = {
+    #    "./output/wuerstchen_1.0_generated": "CFG 1.0",
+    #    "./output/wuerstchen_3.0_generated": "CFG 3.0",
+    #    "./output/wuerstchen_5.0_generated": "CFG 5.0",
+    #    "./output/wuerstchen_7.0_generated": "CFG 7.0",
+    #    "./output/wuerstchen_9.0_generated": "CFG 9.0",
+    #}
+
     source_names = {
-        "./output/wuerstchen_0.5_generated": "CFG 0.5",
-        "./output/wuerstchen_1.0_generated": "CFG 1.0",
-        "./output/wuerstchen_3.0_generated": "CFG 3.0",
-        "./output/wuerstchen_5.0_generated": "CFG 5.0",
-        "./output/wuerstchen_7.0_generated": "CFG 7.0",
-        "./output/wuerstchen_9.0_generated": "CFG 9.0",
+        "./output/wuerstchen_spl5_generated": "5 Steps",
+        "./output/wuerstchen_spl10_generated": "10 Steps",
+        "./output/wuerstchen_spl20_generated": "20 Steps",
+        "./output/wuerstchen_spl40_generated": "40 Steps",
+        "./output/wuerstchen_spl80_generated": "80 Steps",
+        "./output/wuerstchen_spl160_generated": "160 Steps",
     }
 
     for c in range(10):
@@ -152,4 +160,4 @@ if __name__ == '__main__':
 
 
         collage = generate_collage(command_dict, command_captions)
-        collage.save(dest / f"cfg_collage{c}.pdf")
+        collage.save(dest / f"spl_collage{c}.pdf")

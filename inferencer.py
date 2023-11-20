@@ -4,6 +4,7 @@ import PIL
 import torch
 import os
 
+import torchvision
 from diffusers import AutoencoderKL, StableDiffusionKDiffusionPipeline, StableDiffusionPipeline, \
     DPMSolverMultistepScheduler, DiffusionPipeline
 from torchtools.utils import Diffuzz, Diffuzz2
@@ -19,6 +20,8 @@ from diffusers import AutoPipelineForText2Image
 from diffusers.pipelines.wuerstchen import DEFAULT_STAGE_C_TIMESTEPS
 from torchmetrics.multimodal import clip_score
 from torchmetrics.multimodal.clip_score import CLIPScore
+
+
 
 def denormalize_image(image, mean, std):
     """
@@ -56,7 +59,7 @@ class DiffusionModelInferencer(Inferencer):
     vae: torch.nn.Module
     diffuzz: Diffuzz2
 
-    def __call__(self, captions: List[str], device_lang: str = "cpu", batch_size = 2) -> Union[torch.Tensor, List[PIL.Image.Image]]:
+    def __call__(self, captions: List[str], device_lang: str = "cuda:0", batch_size = 2) -> Union[torch.Tensor, List[PIL.Image.Image]]:
         with torch.no_grad():
             # clip stuff
             embeds = prompts2embed(captions, self.clip_tokenizer, self.clip_model, device_lang)
@@ -104,6 +107,24 @@ class WuerstchenInferencer(Inferencer):
 
 
 def ldm14(weight_path: Path = "../models/baseline/exp1.pt.bak", device: str = "cpu") -> Inferencer:
+    generator = LDM(c_hidden=[320, 640, 1280, 1280], nhead=[5, 10, 20, 20], blocks=[[2, 4, 14, 4], [5, 15, 5, 3]],
+                    level_config=['CTA', 'CTA', 'CTA', 'CTA']).cuda()
+    generator.eval()
+    clip_tokenizer, clip_model = tokenizer_text_encoder_factory(device=device)
+    vae = AutoencoderKL.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="vae").to(device)
+    vae.eval().requires_grad_(False)
+
+    checkpoint = torch.load(weight_path, map_location=device)
+    generator.load_state_dict(checkpoint['state_dict'])
+    diffuzz = Diffuzz2(device=device, scaler=1, clamp_range=(0.0001, 0.9999))
+    return DiffusionModelInferencer(generator=generator,
+                                    clip_tokenizer=clip_tokenizer,
+                                    clip_model=clip_model,
+                                    vae=vae,
+                                    diffuzz=diffuzz
+                                    )
+
+def ldm30k(weight_path: Path = "../models/baseline_highres/exp1.pt.bak", device: str = "cpu") -> Inferencer:
     generator = LDM(c_hidden=[320, 640, 1280, 1280], nhead=[5, 10, 20, 20], blocks=[[2, 4, 14, 4], [5, 15, 5, 3]],
                     level_config=['CTA', 'CTA', 'CTA', 'CTA']).cuda()
     generator.eval()
@@ -217,7 +238,7 @@ def sdxl(weight_path: Path = "stabilityai/stable-diffusion-xl-base-1.0", device:
     pipe.to(device)
     return StableDiffusionInferencer(generator=pipe)
 
-def sd21(weight_path: Path = "stabilityai/stable-diffusion-2-1", device: str = "cpu") -> Inferencer:
+def sd21(weight_path: Path = "stabilityai/stable-diffusion-2-1", device: str = "cuda:0") -> Inferencer:
     pipe = StableDiffusionPipeline.from_pretrained(weight_path, torch_dtype=torch.float16)
     pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
     pipe = pipe.to(device)
@@ -258,19 +279,117 @@ def wuerstchen_base(weight_path: Path = "warp-ai/wuerstchen", device: str = "cud
     model = BaseWuerstchenInferencer()
     return model
 
+class TextEncoderWarapper:
+
+    def __init__(self, to_wrap):
+        self.to_wrap = to_wrap
+
+    def __call__(self, *args, **kwargs):
+        x = self.to_wrap(*args, **kwargs)
+        x.last_hidden_state = x.last_hidden_state * 0
+        x.pooler_output = x.pooler_output * 0
+        return x
 
 if __name__ == '__main__':
-    pipeline = wuerstchen()
+    #torch.set_default_device("cuda:0")
+    #pipeline: StableDiffusionPipeline = ldm30k("./models/baseline/exp1_120k.pt", device="cuda:0")
     caption = [
         "Cute cat, big eyes pixar style.",
         "Cute cat, big eyes pixar style.",
                ]
-    images = pipeline(caption, spl=50)
+    import numpy
+    pipeline = wuerstchen()
+    pipeline.generator.decoder_pipe.text_encoder = TextEncoderWarapper(pipeline.generator.decoder_pipe.text_encoder)
+    images = pipeline(caption)
 
-    print(images)
+    #torchvision.utils.save_image(images.float().cpu(), "imgs.jpg")
+
+    #print(images)
     images[0].save("img1.jpg")
     images[1].save("img2.jpg")
-    print(len(images))
+    #print(len(images))
+    """
+    text_enc = sum([numpy.prod(p.size()) for p in pipeline.generator.text_encoder.base_model.parameters()]) / 1000000
+    text_enc2 = sum([numpy.prod(p.size()) for p in pipeline.generator.prior_text_encoder.base_model.parameters()]) / 1000000
+    stage_c = sum([numpy.prod(p.size()) for p in pipeline.generator.prior_prior.parameters()]) / 1000000
+    stage_b = sum([numpy.prod(p.size()) for p in pipeline.generator.decoder.parameters()]) / 1000000
+    stage_a = sum([numpy.prod(p.size()) for p in pipeline.generator.vqgan.parameters()]) / 1000000
+    print(text_enc)
+    print(text_enc2)
+    print(stage_c)
+    print(stage_b)
+    print(stage_a)
+    total_params_wuerstchen = text_enc + stage_a + stage_b + stage_c
+    print(total_params_wuerstchen) # 2.42B parameters
+
+    print("\n\nLDM")
+
+    pipeline: DiffusionModelInferencer = ldm14("./models/baseline/exp1.pt.bak")
+    text_enc = sum([numpy.prod(p.size()) for p in pipeline.clip_model.parameters()]) / 1000000
+    diffusion = sum([numpy.prod(p.size()) for p in pipeline.generator.parameters()]) / 1000000
+    decoder = sum([numpy.prod(p.size()) for p in pipeline.vae.parameters()]) / 1000000
+    total_params_wuerstchen = text_enc + diffusion + decoder
+    print(text_enc)
+    print(diffusion)
+    print(decoder)
+    print("total", total_params_wuerstchen)
+
+    print("\n\nSD 1.4")
+    pipeline: StableDiffusionPipeline = sd14()
+    text_enc = sum([numpy.prod(p.size()) for p in pipeline.generator.text_encoder.base_model.parameters()]) / 1000000
+    vae = sum([numpy.prod(p.size()) for p in pipeline.generator.vae.parameters()]) / 1000000
+    unet = sum([numpy.prod(p.size()) for p in pipeline.generator.unet.parameters()]) / 1000000
+
+    print(text_enc)
+    print(vae)
+    print(unet)
+    total_params_wuerstchen = text_enc + unet + vae
+    print("total", total_params_wuerstchen)
+
+    print("\n\nSD 2.1")
+    pipeline: StableDiffusionPipeline = sd21()
+    text_enc = sum([numpy.prod(p.size()) for p in pipeline.generator.text_encoder.base_model.parameters()]) / 1000000
+    vae = sum([numpy.prod(p.size()) for p in pipeline.generator.vae.parameters()]) / 1000000
+    unet = sum([numpy.prod(p.size()) for p in pipeline.generator.unet.parameters()]) / 1000000
+
+    print(text_enc)
+    print(vae)
+    print(unet)
+    total_params_wuerstchen = text_enc + unet + vae
+    print("total", total_params_wuerstchen)
+
+
+    print("\n\nSD XL")
+    pipeline: StableDiffusionPipeline = sdxl()
+    text_enc = sum([numpy.prod(p.size()) for p in pipeline.generator.text_encoder.base_model.parameters()]) / 1000000
+    vae = sum([numpy.prod(p.size()) for p in pipeline.generator.vae.parameters()]) / 1000000
+    unet = sum([numpy.prod(p.size()) for p in pipeline.generator.unet.parameters()]) / 1000000
+
+    print(text_enc)
+    print(vae)
+    print(unet)
+    total_params_wuerstchen = text_enc + unet + vae
+    print("total", total_params_wuerstchen)
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #images = pipeline(caption, cfg=0.0)
+
+    #print(images)
+    #images[0].save("img1.jpg")
+    #images[1].save("img2.jpg")
+    #print(len(images))
+    """
 
 
 
