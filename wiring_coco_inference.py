@@ -132,6 +132,8 @@ if __name__ == '__main__':
     elif args.factory == "sd21":
         factory = sd21
     elif args.factory == "sdxl":
+        factory = sdxl
+    elif args.factory == "wuerstchen":
         factory = wuerstchen
     elif args.factory == "wuerstchen_no_text":
         factory = wuerstchen_no_text
