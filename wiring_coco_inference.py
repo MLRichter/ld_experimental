@@ -7,7 +7,7 @@ import torchvision
 from tqdm import tqdm
 import os
 
-from inferencer import sd14, wuerstchen, ldm14, wuerstchen_base, sd21, sdxl
+from inferencer import sd14, wuerstchen, ldm14, wuerstchen_base, sd21, sdxl, wuerstchen_no_text
 from pathlib import Path
 #torch.manual_seed(30071993)
 
@@ -134,6 +134,8 @@ if __name__ == '__main__':
         factory = sdxl
     elif args.factory == "wuerstchen":
         factory = wuerstchen
+    elif args.factory == "wuerstchen_no_text":
+        factory = wuerstchen_no_text
     elif args.factory == "wuerstchen_base":
         factory = wuerstchen_base
     elif args.factory == "ldm14":
