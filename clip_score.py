@@ -103,7 +103,7 @@ def compute_clip_score(path =  '../coco2017/val2014/', parquet: str = "../coco20
     return clip.compute()
 
 @torch.no_grad()
-def compute_clip_score2(path =  '../coco2017/val2014/', parquet: str = "../coco2017/long_context_val.parquet", batch_size: int = 256, gpu: bool = True, dims=2048):
+def compute_clip_score2(path =  '../coco2017/val2014/', parquet: str = "../coco2017/coco_30k.parquet", batch_size: int = 256, gpu: bool = True, dims=2048):
     """Calculates the IC of two paths"""
     dataset = MyDataset(image_paths=parquet, root=path, transform=None)
     #loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=5, pin_memory=True)
@@ -141,11 +141,11 @@ def main():
         #"./output/wuerstchen_spl80_generated",
         #"./output/wuerstchen_spl160_generated",
 
-        "output/sd21_1.0_generated",
-        "output/sd21_3.0_generated",
-        "output/sd21_5.0_generated",
-        "output/sd21_7.0_generated",
-        "output/sd21_9.0_generated",
+        #"output/sd21_1.0_generated",
+        #"output/sd21_3.0_generated",
+        #"output/sd21_5.0_generated",
+        #"output/sd21_7.0_generated",
+        #"output/sd21_9.0_generated",
 
         #"output/wuerstchen_0.5_generated",
         #"output/wuerstchen_1.0_generated",
@@ -153,6 +153,10 @@ def main():
         #"output/wuerstchen_5.0_generated",
         #"output/wuerstchen_7.0_generated",
         #"output/wuerstchen_9.0_generated",
+
+        "output/wuerstchen_generated",
+        "output/wuerstchen_no_text_generated",
+        "output/wuerstchen_no_prior_text_generated",
 
         #"output/wuerstchen_generated",
         #"output/df_gan_generated",
